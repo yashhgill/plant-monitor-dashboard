@@ -3,328 +3,152 @@ import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceL
 
 const API = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
-// ── Translations ──────────────────────────────
+// ── i18n ──────────────────────────────────────
 const T = {
   en: {
-    appName:        "AI Planter",
-    appSub:         "Smart Greenhouse Control",
-    live:           "Live",
-    espOffline:     "ESP32 Offline",
-    backendOffline: "Offline",
-    noPlant:        "No plant set",
-    askAI:          "Ask AI to set thresholds for your plant.",
-    rgbTitle:       "ESP32 RGB Status",
-    enableAlerts:   "🔕 Enable alerts",
-    alertsOn:       "🔔 Alerts on",
-    addToHome:      "Add to Home Screen to enable alerts",
-    temperature:    "Temperature",
-    humidity:       "Humidity",
-    optimal:        "Optimal",
-    tooLow:         "Too low",
-    tooHigh:        "Too high",
-    fan:            "Fan",
-    pump:           "Pump",
-    auto:           "Auto",
-    running:        "Running",
-    misting:        "Misting",
-    idle:           "Idle",
-    manual:         "Manual",
-    controls:       "Controls",
-    autoMode:       "Auto Mode",
-    manualHint:     "Switch to Manual to override",
-    aiTitle:        "✦ AI Planter",
-    aiActive:       "Active:",
-    aiPlaceholder:  "Enter plant name…",
-    aiBtn:          "Set & Control",
-    aiLoading:      "Thinking…",
-    aiEmpty:        "Enter a plant and tap Set & Control — AI will configure optimal thresholds.",
-    aiFail:         "AI request failed. Check GROQ_API_KEY on your backend.",
-    tempRange:      "Temperature",
-    humidRange:     "Humidity",
-    updated:        "Updated",
-    thriving:       "Thriving",
-    good:           "Good",
-    fair:           "Fair",
-    stressed:       "Stressed",
-    standby:        "Standby",
-    fanActive:      "Fan active",
-    pumpActive:     "Pump active",
-    fanPump:        "Fan + Pump",
-    manualMode:     "Manual",
-    notifFan:       ["🌿 AI Planter", "Fan ON — temperature high"],
-    notifFanOff:    ["🌿 AI Planter", "Fan OFF — temperature normal"],
-    notifPump:      ["🌿 AI Planter", "Pump ON — humidity low"],
-    notifPumpOff:   ["🌿 AI Planter", "Pump OFF — humidity restored"],
-    notifStress:    ["⚠️ Plant Alert", (s) => `Plant stressed! Score: ${s}/100`],
-    notifAI:        ["🌿 AI Planter", (p) => `Thresholds set for ${p}`],
-    notifAlerts:    ["🌿 AI Planter", "Alerts are now enabled!"],
+    appName:"AI Planter", appSub:"Smart Greenhouse Control",
+    live:"Live", espOff:"ESP32 Offline", off:"Offline",
+    noPlant:"No plant selected",
+    temp:"Temperature", humid:"Humidity",
+    optimal:"Optimal", low:"Too low", high:"Too high",
+    fan:"Fan", pump:"Pump", auto:"Auto",
+    running:"Running", misting:"Misting", idle:"Idle", manual:"Manual",
+    controls:"Controls", autoMode:"Auto Mode",
+    manualHint:"Switch to Manual to override",
+    aiHero:"What are you growing today?",
+    aiSub:"Type a plant and the AI will set the perfect temperature and humidity thresholds automatically.",
+    aiPlaceholder:"e.g. tomato, orchid, chilli, basil…",
+    aiBtn:"Set & Control",
+    aiLoading:"Thinking…",
+    aiEmpty:"Enter a plant name above to get started.",
+    aiFail:"AI unavailable. Check GROQ_API_KEY on backend.",
+    activeFor:"Active thresholds for",
+    tempRange:"Temp range",
+    humidRange:"Humidity range",
+    updated:"Updated",
+    thriving:"Thriving", good:"Good", fair:"Fair", stressed:"Stressed",
+    standby:"Standby", fanAct:"Fan active", pumpAct:"Pump active",
+    fanPump:"Fan + Pump", manMode:"Manual",
+    alertOn:"🔔 Alerts on", alertOff:"🔕 Enable alerts",
+    alertIOS:"Add to Home Screen for alerts",
+    rgbStatus:"RGB Status",
+    health:"Plant Health",
+    score:"Score",
+    advice:"Care advice",
   },
   ms: {
-    appName:        "AI Planter",
-    appSub:         "Kawalan Rumah Hijau Pintar",
-    live:           "Langsung",
-    espOffline:     "ESP32 Luar Talian",
-    backendOffline: "Luar Talian",
-    noPlant:        "Tiada pokok dipilih",
-    askAI:          "Tanya AI untuk tetapkan ambang bagi pokok anda.",
-    rgbTitle:       "Status RGB ESP32",
-    enableAlerts:   "🔕 Aktifkan amaran",
-    alertsOn:       "🔔 Amaran aktif",
-    addToHome:      "Tambah ke Skrin Utama untuk amaran",
-    temperature:    "Suhu",
-    humidity:       "Kelembapan",
-    optimal:        "Optimum",
-    tooLow:         "Terlalu rendah",
-    tooHigh:        "Terlalu tinggi",
-    fan:            "Kipas",
-    pump:           "Pam",
-    auto:           "Auto",
-    running:        "Berjalan",
-    misting:        "Menyembur",
-    idle:           "Rehat",
-    manual:         "Manual",
-    controls:       "Kawalan",
-    autoMode:       "Mod Auto",
-    manualHint:     "Tukar ke Manual untuk kawal sendiri",
-    aiTitle:        "✦ AI Planter",
-    aiActive:       "Aktif:",
-    aiPlaceholder:  "Masukkan nama pokok…",
-    aiBtn:          "Tetap & Kawal",
-    aiLoading:      "Sedang berfikir…",
-    aiEmpty:        "Masukkan nama pokok dan ketik Tetap & Kawal — AI akan tetapkan ambang optimum.",
-    aiFail:         "Permintaan AI gagal. Semak GROQ_API_KEY di backend anda.",
-    tempRange:      "Suhu",
-    humidRange:     "Kelembapan",
-    updated:        "Dikemas kini",
-    thriving:       "Subur",
-    good:           "Baik",
-    fair:           "Sederhana",
-    stressed:       "Tertekan",
-    standby:        "Sedia",
-    fanActive:      "Kipas aktif",
-    pumpActive:     "Pam aktif",
-    fanPump:        "Kipas + Pam",
-    manualMode:     "Manual",
-    notifFan:       ["🌿 AI Planter", "Kipas ON — suhu tinggi"],
-    notifFanOff:    ["🌿 AI Planter", "Kipas OFF — suhu normal"],
-    notifPump:      ["🌿 AI Planter", "Pam ON — kelembapan rendah"],
-    notifPumpOff:   ["🌿 AI Planter", "Pam OFF — kelembapan pulih"],
-    notifStress:    ["⚠️ Amaran Pokok", (s) => `Pokok tertekan! Skor: ${s}/100`],
-    notifAI:        ["🌿 AI Planter", (p) => `Ambang ditetapkan untuk ${p}`],
-    notifAlerts:    ["🌿 AI Planter", "Amaran telah diaktifkan!"],
+    appName:"AI Planter", appSub:"Kawalan Rumah Hijau Pintar",
+    live:"Langsung", espOff:"ESP32 Luar Talian", off:"Luar Talian",
+    noPlant:"Tiada pokok dipilih",
+    temp:"Suhu", humid:"Kelembapan",
+    optimal:"Optimum", low:"Terlalu rendah", high:"Terlalu tinggi",
+    fan:"Kipas", pump:"Pam", auto:"Auto",
+    running:"Berjalan", misting:"Menyembur", idle:"Rehat", manual:"Manual",
+    controls:"Kawalan", autoMode:"Mod Auto",
+    manualHint:"Tukar ke Manual untuk kawal sendiri",
+    aiHero:"Apa yang anda tanam hari ini?",
+    aiSub:"Taip nama pokok dan AI akan tetapkan ambang suhu dan kelembapan yang sempurna secara automatik.",
+    aiPlaceholder:"cth. tomato, orkid, cili, selasih…",
+    aiBtn:"Tetap & Kawal",
+    aiLoading:"Sedang berfikir…",
+    aiEmpty:"Masukkan nama pokok di atas untuk bermula.",
+    aiFail:"AI tidak tersedia. Semak GROQ_API_KEY di backend.",
+    activeFor:"Ambang aktif untuk",
+    tempRange:"Julat suhu",
+    humidRange:"Julat kelembapan",
+    updated:"Dikemas kini",
+    thriving:"Subur", good:"Baik", fair:"Sederhana", stressed:"Tertekan",
+    standby:"Sedia", fanAct:"Kipas aktif", pumpAct:"Pam aktif",
+    fanPump:"Kipas + Pam", manMode:"Manual",
+    alertOn:"🔔 Amaran aktif", alertOff:"🔕 Aktifkan amaran",
+    alertIOS:"Tambah ke Skrin Utama untuk amaran",
+    rgbStatus:"Status RGB",
+    health:"Kesihatan Pokok",
+    score:"Skor",
+    advice:"Tip penjagaan",
   },
 };
 
-// ── Push Notifications ────────────────────────
-async function requestNotificationPermission() {
+// ── Notifications ────────────────────────────
+async function requestNotif() {
   if (!("Notification" in window)) return false;
   if (Notification.permission === "granted") return true;
-  const perm = await Notification.requestPermission();
-  return perm === "granted";
+  return (await Notification.requestPermission()) === "granted";
 }
-function sendNotification(title, body) {
-  if (Notification.permission !== "granted") return;
-  new Notification(title, { body, icon: "/icon-192.png" });
-}
-
-// ── Health Score ──────────────────────────────
-function calcHealth(temp, humid, t) {
-  let score = 100;
-  if (temp  > t.temp_high)  score -= Math.min(40, (temp  - t.temp_high)  * 8);
-  if (temp  < t.temp_low)   score -= Math.min(40, (t.temp_low  - temp)   * 8);
-  if (humid > t.humid_high) score -= Math.min(30, (humid - t.humid_high) * 3);
-  if (humid < t.humid_low)  score -= Math.min(30, (t.humid_low  - humid) * 3);
-  return Math.max(0, Math.round(score));
-}
-function healthMeta(score, t) {
-  if (score >= 85) return { key: "thriving", color: "#22c55e" };
-  if (score >= 60) return { key: "good",     color: "#84cc16" };
-  if (score >= 40) return { key: "fair",     color: "#f59e0b" };
-  return               { key: "stressed", color: "#ef4444" };
+function notify(title, body) {
+  if (Notification.permission === "granted")
+    new Notification(title, { body, icon: "/icon-192.png" });
 }
 
-// ── RGB Dot ───────────────────────────────────
-function RGBDot({ fanOn, pumpOn, autoMode, t }) {
-  let color, labelKey;
-  if (!autoMode)            { color = "#a855f7"; labelKey = "manualMode"; }
-  else if (fanOn && pumpOn) { color = "#06b6d4"; labelKey = "fanPump"; }
-  else if (fanOn)           { color = "#3b82f6"; labelKey = "fanActive"; }
-  else if (pumpOn)          { color = "#22c55e"; labelKey = "pumpActive"; }
-  else                      { color = "#d1d5db"; labelKey = "standby"; }
-  return (
-    <div className="rgb-wrap">
-      <div className="rgb-orb" style={{ background: color, boxShadow: `0 0 18px ${color}99, 0 0 6px ${color}` }} />
-      <span className="rgb-label" style={{ color }}>{t[labelKey]}</span>
-    </div>
-  );
+// ── Health ───────────────────────────────────
+function calcHealth(temp, humid, th) {
+  let s = 100;
+  if (temp  > th.temp_high)  s -= Math.min(40, (temp  - th.temp_high)  * 9);
+  if (temp  < th.temp_low)   s -= Math.min(40, (th.temp_low  - temp)   * 9);
+  if (humid > th.humid_high) s -= Math.min(30, (humid - th.humid_high) * 3);
+  if (humid < th.humid_low)  s -= Math.min(30, (th.humid_low  - humid) * 3);
+  return Math.max(0, Math.round(s));
+}
+function healthMeta(score) {
+  if (score >= 85) return { key:"thriving", color:"#4ade80", ring:"#166534" };
+  if (score >= 65) return { key:"good",     color:"#a3e635", ring:"#3f6212" };
+  if (score >= 40) return { key:"fair",     color:"#fbbf24", ring:"#92400e" };
+  return               { key:"stressed", color:"#f87171", ring:"#7f1d1d" };
 }
 
-// ── Score Ring ────────────────────────────────
-function ScoreRing({ score, label, color }) {
-  const r = 44, circ = 2 * Math.PI * r;
-  const dash = (score / 100) * circ;
-  return (
-    <div className="score-ring-wrap">
-      <svg viewBox="0 0 100 100" width="100" height="100">
-        <circle cx="50" cy="50" r={r} fill="none" stroke="#f1f5f9" strokeWidth="8" />
-        <circle cx="50" cy="50" r={r} fill="none" stroke={color} strokeWidth="8"
-          strokeDasharray={`${dash} ${circ}`} strokeDashoffset={circ * 0.25}
-          strokeLinecap="round" style={{ transition: "stroke-dasharray 0.8s ease, stroke 0.4s" }} />
-        <text x="50" y="46" textAnchor="middle" fill="#0f172a" fontSize="22" fontWeight="700" fontFamily="Inter, sans-serif">{score}</text>
-        <text x="50" y="60" textAnchor="middle" fill="#94a3b8" fontSize="9" fontFamily="Inter, sans-serif">/ 100</text>
-      </svg>
-      <p className="score-label" style={{ color }}>{label}</p>
-    </div>
-  );
+// ── RGB orb ──────────────────────────────────
+function getRGB(fanOn, pumpOn, autoMode) {
+  if (!autoMode)            return { color:"#a78bfa", key:"manMode" };
+  if (fanOn && pumpOn)      return { color:"#22d3ee", key:"fanPump" };
+  if (fanOn)                return { color:"#60a5fa", key:"fanAct" };
+  if (pumpOn)               return { color:"#4ade80", key:"pumpAct" };
+  return                           { color:"#94a3b8", key:"standby" };
 }
 
-// ── Metric Card ───────────────────────────────
-function Metric({ value, unit, label, lowThresh, highThresh, color, t }) {
-  const ok = value >= lowThresh && value <= highThresh;
-  const statusKey = ok ? "optimal" : value < lowThresh ? "tooLow" : "tooHigh";
-  const statusColor = ok ? "#22c55e" : value < lowThresh ? "#3b82f6" : "#ef4444";
-  return (
-    <div className="metric-card glass">
-      <p className="metric-label">{label}</p>
-      <div className="metric-value-row">
-        <span className="metric-value" style={{ color }}>{value.toFixed(1)}</span>
-        <span className="metric-unit">{unit}</span>
-      </div>
-      <div className="metric-status-row">
-        <span className="metric-status-dot" style={{ background: statusColor }} />
-        <span className="metric-status-text" style={{ color: statusColor }}>{t[statusKey]}</span>
-        <span className="metric-range">{lowThresh}–{highThresh}{unit}</span>
-      </div>
-      <div className="metric-bar-bg">
-        <div className="metric-bar-fill" style={{
-          width: `${Math.min(100, Math.max(0, ((value - (lowThresh - 5)) / ((highThresh + 5) - (lowThresh - 5))) * 100))}%`,
-          background: statusColor, transition: "width 0.6s ease, background 0.4s"
-        }} />
-        <div className="metric-bar-zone" style={{
-          left:  `${((lowThresh - (lowThresh - 5)) / ((highThresh + 5) - (lowThresh - 5))) * 100}%`,
-          width: `${((highThresh - lowThresh)      / ((highThresh + 5) - (lowThresh - 5))) * 100}%`,
-        }} />
-      </div>
-    </div>
-  );
-}
-
-// ── Indicator Card ────────────────────────────
-function IndicatorCard({ active, color, icon, label, subOn, subOff }) {
-  return (
-    <div className={`indicator-card glass ${active ? "active" : ""}`} style={{ "--ic": color }}>
-      <div className="ind-icon-wrap" style={{ background: active ? `${color}18` : "#f8fafc" }}>
-        <span className="ind-icon">{icon}</span>
-        {active && <span className="ind-pulse" style={{ background: color }} />}
-      </div>
-      <p className="ind-label">{label}</p>
-      <p className="ind-sub" style={{ color: active ? color : "#94a3b8" }}>{active ? subOn : subOff}</p>
-    </div>
-  );
-}
-
-// ── Chart ─────────────────────────────────────
-function Chart({ data, dataKey, color, label, unit, refLow, refHigh }) {
-  return (
-    <div className="chart-card glass">
-      <div className="chart-head">
-        <span className="chart-title">{label}</span>
-        <span className="chart-unit" style={{ color }}>{refLow}–{refHigh} {unit}</span>
-      </div>
-      <ResponsiveContainer width="100%" height={130}>
-        <LineChart data={data.slice(-20)} margin={{ top: 4, right: 4, left: -24, bottom: 0 }}>
-          <XAxis dataKey="ts" tick={{ fill: "#94a3b8", fontSize: 9 }} interval="preserveStartEnd" />
-          <YAxis tick={{ fill: "#94a3b8", fontSize: 9 }} />
-          <Tooltip contentStyle={{ background: "rgba(255,255,255,0.95)", border: "none",
-            borderRadius: 12, boxShadow: "0 4px 24px #0002", fontSize: 12 }}
-            labelStyle={{ color: "#64748b" }} itemStyle={{ color }} />
-          <ReferenceLine y={refHigh} stroke={color} strokeDasharray="3 3" strokeOpacity={0.35} />
-          <ReferenceLine y={refLow}  stroke={color} strokeDasharray="3 3" strokeOpacity={0.35} />
-          <Line type="monotone" dataKey={dataKey} stroke={color} strokeWidth={2.5}
-            dot={false} activeDot={{ r: 5, fill: color, strokeWidth: 0 }} />
-        </LineChart>
-      </ResponsiveContainer>
-    </div>
-  );
-}
-
-// ── Toggle Button ─────────────────────────────
-function Toggle({ active, onToggle, label, disabled, color = "#22c55e" }) {
-  return (
-    <button className={`ctrl-toggle ${active ? "on" : "off"} ${disabled ? "dim" : ""}`}
-      onClick={onToggle} disabled={disabled}
-      style={active ? { borderColor: color, background: `${color}12`, color } : {}}>
-      <div className="track" style={active ? { background: color } : {}}>
-        <div className="thumb" />
-      </div>
-      <span>{label}</span>
-    </button>
-  );
-}
-
-// ── Lang Toggle ───────────────────────────────
-function LangToggle({ lang, setLang }) {
-  return (
-    <button className="lang-btn" onClick={() => setLang(l => l === "en" ? "ms" : "en")}>
-      {lang === "en" ? "🇲🇾 BM" : "🇬🇧 EN"}
-    </button>
-  );
-}
-
-// ── Main App ──────────────────────────────────
 export default function App() {
-  const [lang, setLang]           = useState(() => localStorage.getItem("aiplanter_lang") || "en");
+  const [lang, setLang]     = useState(() => localStorage.getItem("aip_lang") || "en");
   const t = T[lang];
-
-  const [latest, setLatest]       = useState({ temperature: 0, humidity: 0, fan: false, pump: false, auto: true, ts: "--" });
-  const [history, setHistory]     = useState([]);
-  const [thresh, setThresh]       = useState({ temp_high: 25, temp_low: 23, humid_low: 40, humid_high: 55, plant: "", advice: "" });
-  const [autoMode, setAutoMode]   = useState(true);
-  const [fanOn, setFanOn]         = useState(false);
-  const [pumpOn, setPumpOn]       = useState(false);
-  const [plant, setPlant]         = useState("");
+  const [latest, setLatest] = useState({ temperature:0, humidity:0, fan:false, pump:false, auto:true, ts:"--" });
+  const [history, setHistory] = useState([]);
+  const [thresh, setThresh]   = useState({ temp_high:25, temp_low:23, humid_low:40, humid_high:55, plant:"", advice:"" });
+  const [autoMode, setAutoMode] = useState(true);
+  const [fanOn, setFanOn]     = useState(false);
+  const [pumpOn, setPumpOn]   = useState(false);
+  const [plant, setPlant]     = useState("");
   const [aiLoading, setAiLoading] = useState(false);
   const [aiError, setAiError]     = useState("");
   const [backendOk, setBackendOk] = useState(false);
   const [espOk, setEspOk]         = useState(false);
-  const [notifGranted, setNotifGranted]   = useState(false);
+  const [notifGranted, setNotifGranted]     = useState(false);
   const [notifSupported, setNotifSupported] = useState(false);
-
   const pendingRef = useRef({});
-  const prevStates = useRef({ fan: false, pump: false, health: 100 });
-  const lastEspTs  = useRef("--");
+  const prevRef    = useRef({ fan:false, pump:false, health:100 });
+  const lastTsRef  = useRef("--");
 
-  // Persist language choice
-  useEffect(() => { localStorage.setItem("aiplanter_lang", lang); }, [lang]);
+  useEffect(() => { localStorage.setItem("aip_lang", lang); }, [lang]);
 
   const score  = calcHealth(latest.temperature, latest.humidity, thresh);
   const health = healthMeta(score);
+  const rgb    = getRGB(fanOn, pumpOn, autoMode);
 
-  // ── Notifications setup ──────────────────────
+  // notifications
   useEffect(() => {
-    const supported = "Notification" in window;
-    setNotifSupported(supported);
-    if (supported && Notification.permission === "granted") setNotifGranted(true);
+    const s = "Notification" in window;
+    setNotifSupported(s);
+    if (s && Notification.permission === "granted") setNotifGranted(true);
   }, []);
 
-  const handleNotifBtn = async () => {
-    const ok = await requestNotificationPermission();
-    setNotifGranted(ok);
-    if (ok) sendNotification(...t.notifAlerts);
-  };
-
-  // Watch ESP state changes → notify
   useEffect(() => {
-    const prev = prevStates.current;
-    if (fanOn  && !prev.fan)          sendNotification(...t.notifFan);
-    if (!fanOn && prev.fan)           sendNotification(...t.notifFanOff);
-    if (pumpOn && !prev.pump)         sendNotification(...t.notifPump);
-    if (!pumpOn && prev.pump)         sendNotification(...t.notifPumpOff);
-    if (score < 40 && prev.health >= 40) sendNotification(t.notifStress[0], t.notifStress[1](score));
-    prevStates.current = { fan: fanOn, pump: pumpOn, health: score };
+    const prev = prevRef.current;
+    if (fanOn && !prev.fan)   notify("🌱 AI Planter", t.fan + " ON");
+    if (!fanOn && prev.fan)   notify("🌱 AI Planter", t.fan + " OFF");
+    if (pumpOn && !prev.pump) notify("🌱 AI Planter", t.pump + " ON");
+    if (!pumpOn && prev.pump) notify("🌱 AI Planter", t.pump + " OFF");
+    if (score < 40 && prev.health >= 40) notify("⚠️ AI Planter", `${t.stressed}! Score: ${score}`);
+    prevRef.current = { fan:fanOn, pump:pumpOn, health:score };
   }, [fanOn, pumpOn, score]);
 
-  // ── Poll backend ─────────────────────────────
+  // poll
   const poll = useCallback(async () => {
     try {
       const r = await fetch(`${API}/data`, { signal: AbortSignal.timeout(4000) });
@@ -332,66 +156,35 @@ export default function App() {
       const d = await r.json();
       setBackendOk(true);
       if (d.thresholds) setThresh(d.thresholds);
-
-      const newTs = d.latest?.ts || "--";
-      if (newTs !== "--" && newTs !== lastEspTs.current) {
+      const ts = d.latest?.ts || "--";
+      if (ts !== "--" && ts !== lastTsRef.current) {
         setEspOk(true);
-        lastEspTs.current = newTs;
+        lastTsRef.current = ts;
         setLatest(d.latest);
         setHistory(d.history);
         if (pendingRef.current.auto  === undefined) setAutoMode(d.latest.auto);
         if (pendingRef.current.fan   === undefined) setFanOn(d.latest.fan);
         if (pendingRef.current.pump  === undefined) setPumpOn(d.latest.pump);
-      } else if (newTs === lastEspTs.current && newTs !== "--") {
+      } else if (ts === lastTsRef.current && ts !== "--") {
         setEspOk(false);
       }
-    } catch {
-      setBackendOk(false);
-      setEspOk(false);
-    }
+    } catch { setBackendOk(false); setEspOk(false); }
   }, []);
 
-  useEffect(() => {
-    poll();
-    const id = setInterval(poll, 5000);
-    return () => clearInterval(id);
-  }, [poll]);
+  useEffect(() => { poll(); const id = setInterval(poll, 5000); return () => clearInterval(id); }, [poll]);
 
-  const clearPending = (key) => setTimeout(() => {
-    pendingRef.current = { ...pendingRef.current, [key]: undefined };
-  }, 8000);
-
-  // ── Commands ─────────────────────────────────
-  const send = (payload) => fetch(`${API}/control`, {
-    method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload)
-  });
+  const clearPend = (k) => setTimeout(() => { pendingRef.current = { ...pendingRef.current, [k]:undefined }; }, 8000);
+  const send = (p) => fetch(`${API}/control`, { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(p) });
 
   const toggleAuto = () => {
-    const n = !autoMode;
-    setAutoMode(n);
-    pendingRef.current.auto = n;
-    clearPending("auto");
-    send({ auto: n });
-    if (n) {
-      setFanOn(false); setPumpOn(false);
-      pendingRef.current.fan = undefined;
-      pendingRef.current.pump = undefined;
-    }
+    const n = !autoMode; setAutoMode(n);
+    pendingRef.current.auto = n; clearPend("auto");
+    send({ auto:n });
+    if (n) { setFanOn(false); setPumpOn(false); pendingRef.current.fan = undefined; pendingRef.current.pump = undefined; }
   };
-  const toggleFan = () => {
-    if (autoMode) return;
-    const n = !fanOn; setFanOn(n);
-    pendingRef.current.fan = n; clearPending("fan");
-    send({ fan: n });
-  };
-  const togglePump = () => {
-    if (autoMode) return;
-    const n = !pumpOn; setPumpOn(n);
-    pendingRef.current.pump = n; clearPending("pump");
-    send({ pump: n });
-  };
+  const toggleFan  = () => { if (autoMode) return; const n=!fanOn;  setFanOn(n);  pendingRef.current.fan=n;  clearPend("fan");  send({fan:n}); };
+  const togglePump = () => { if (autoMode) return; const n=!pumpOn; setPumpOn(n); pendingRef.current.pump=n; clearPend("pump"); send({pump:n}); };
 
-  // ── AI ────────────────────────────────────────
   const askAI = async () => {
     if (!plant.trim()) return;
     setAiLoading(true); setAiError("");
@@ -399,200 +192,451 @@ export default function App() {
       const r = await fetch(`${API}/ai-advice?plant=${encodeURIComponent(plant)}`);
       if (!r.ok) throw new Error(await r.text());
       const d = await r.json();
-      if (d.thresholds) {
-        setThresh(d.thresholds);
-        sendNotification(t.notifAI[0], t.notifAI[1](plant));
-      }
+      if (d.thresholds) { setThresh(d.thresholds); notify("🌱 AI Planter", `Thresholds set for ${plant}`); }
     } catch { setAiError(t.aiFail); }
     setAiLoading(false);
   };
 
-  // ── Connection label ─────────────────────────
-  const connStatus = !backendOk ? t.backendOffline : !espOk ? t.espOffline : t.live;
-  const connDot    = espOk ? "on" : backendOk ? "warn" : "";
+  const connLabel = !backendOk ? t.off : !espOk ? t.espOff : t.live;
+  const connColor = espOk ? "#4ade80" : backendOk ? "#fbbf24" : "#f87171";
+
+  // ring arc
+  const r = 52, circ = 2 * Math.PI * r;
+  const arc = (score / 100) * circ * 0.75;
 
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Inter:wght@400;500&display=swap');
+
+        *, *::before, *::after { box-sizing: border-box; margin:0; padding:0; }
+
         :root {
-          --bg:      #f0f4f8;
-          --surface: rgba(255,255,255,0.75);
-          --border:  rgba(0,0,0,0.07);
-          --shadow:  0 2px 20px rgba(0,0,0,0.07), 0 1px 4px rgba(0,0,0,0.04);
-          --text:    #0f172a;
-          --muted:   #64748b;
-          --subtle:  #94a3b8;
-          --green:   #22c55e;
-          --blue:    #3b82f6;
-          --amber:   #f59e0b;
-          --red:     #ef4444;
-          --purple:  #8b5cf6;
-          --radius:  20px;
+          --bg:        #0a1a0f;
+          --bg2:       #0f2416;
+          --surface:   rgba(15,36,22,0.85);
+          --surface2:  rgba(20,46,28,0.9);
+          --border:    rgba(74,222,128,0.12);
+          --border2:   rgba(74,222,128,0.22);
+          --text:      #ecfdf5;
+          --muted:     #6ee7b7;
+          --subtle:    #34d399;
+          --dim:       #4b5563;
+          --green:     #4ade80;
+          --mint:      #6ee7b7;
+          --amber:     #fbbf24;
+          --blue:      #60a5fa;
+          --red:       #f87171;
+          --purple:    #a78bfa;
+          --cyan:      #22d3ee;
+          --gold:      #f59e0b;
+          --r:         18px;
+          --r-sm:      12px;
+          --shadow:    0 4px 32px rgba(0,0,0,0.5);
+          --glow-g:    0 0 20px rgba(74,222,128,0.15);
+          --glow-a:    0 0 24px rgba(245,158,11,0.2);
         }
-        html { -webkit-text-size-adjust: 100%; }
+
+        html { -webkit-text-size-adjust:100%; scroll-behavior:smooth; }
+
         body {
           background: var(--bg);
           background-image:
-            radial-gradient(ellipse at 20% 0%, #dcfce7 0%, transparent 50%),
-            radial-gradient(ellipse at 80% 0%, #dbeafe 0%, transparent 50%);
+            radial-gradient(ellipse 60% 40% at 15% 0%, rgba(74,222,128,0.07) 0%, transparent 60%),
+            radial-gradient(ellipse 50% 50% at 85% 100%, rgba(34,211,238,0.05) 0%, transparent 60%);
           background-attachment: fixed;
           color: var(--text);
-          font-family: 'Inter', -apple-system, sans-serif;
+          font-family: 'Inter', sans-serif;
           min-height: 100dvh;
-          padding-bottom: env(safe-area-inset-bottom);
+          padding-bottom: env(safe-area-inset-bottom, 16px);
+          overflow-x: hidden;
         }
+
         .app {
-          max-width: 430px; margin: 0 auto;
-          padding: 0 16px 48px;
-          padding-top: env(safe-area-inset-top, 0px);
-        }
-        .glass {
-          background: var(--surface);
-          backdrop-filter: blur(20px) saturate(180%);
-          -webkit-backdrop-filter: blur(20px) saturate(180%);
-          border: 1px solid var(--border);
-          border-radius: var(--radius);
-          box-shadow: var(--shadow);
+          max-width: 440px;
+          margin: 0 auto;
+          padding: 0 14px 48px;
+          padding-top: max(16px, env(safe-area-inset-top, 16px));
         }
 
-        /* ── Header ── */
-        .header { padding: 20px 0 16px; display: flex; align-items: flex-start; justify-content: space-between; }
-        .header-left { flex: 1; }
-        .header-title { font-size: 1.3rem; font-weight: 700; letter-spacing: -0.03em; line-height: 1.2; }
-        .header-sub { font-size: 0.75rem; color: var(--muted); margin-top: 3px; }
-        .header-right { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
-        .live-badge {
-          display: flex; align-items: center; gap: 5px;
-          background: white; border: 1px solid var(--border);
+        /* ── Header ───────────────────── */
+        .header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 4px 0 20px;
+        }
+        .header-brand { display:flex; align-items:center; gap:9px; }
+        .brand-leaf {
+          width: 34px; height: 34px; border-radius: 10px;
+          background: linear-gradient(135deg, #166534, #4ade80);
+          display: flex; align-items:center; justify-content:center;
+          font-size: 18px; box-shadow: 0 0 16px rgba(74,222,128,0.3);
+        }
+        .brand-name {
+          font-family: 'Space Grotesk', sans-serif;
+          font-size: 1.05rem; font-weight: 700; letter-spacing: -0.01em;
+          color: var(--text);
+        }
+        .brand-sub {
+          font-size: 0.65rem; color: var(--muted);
+          font-family: 'Inter', sans-serif; margin-top: 1px;
+        }
+        .header-right { display:flex; align-items:center; gap:8px; }
+        .pill {
+          display: flex; align-items:center; gap:5px;
+          background: rgba(0,0,0,0.4); border: 1px solid var(--border2);
           border-radius: 20px; padding: 5px 10px;
-          font-size: 0.72rem; font-weight: 500; color: var(--muted);
-          box-shadow: var(--shadow);
+          font-size: 0.7rem; font-weight: 500;
         }
-        .live-dot { width: 7px; height: 7px; border-radius: 50%; background: #d1d5db; }
-        .live-dot.on   { background: var(--green); box-shadow: 0 0 0 3px #dcfce7; animation: livepulse 2s infinite; }
-        .live-dot.warn { background: var(--amber); box-shadow: 0 0 0 3px #fef3c7; }
-        @keyframes livepulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
-
-        /* Language toggle */
+        .pip { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
         .lang-btn {
-          background: white; border: 1px solid var(--border);
-          border-radius: 20px; padding: 5px 12px;
-          font-size: 0.72rem; font-weight: 600; color: var(--muted);
-          cursor: pointer; box-shadow: var(--shadow);
-          transition: all 0.18s;
+          background: rgba(0,0,0,0.4); border: 1px solid var(--border2);
+          border-radius: 20px; padding: 5px 10px;
+          font-size: 0.7rem; font-weight: 600; color: var(--muted);
+          cursor: pointer; transition: all 0.18s;
         }
-        .lang-btn:active { transform: scale(0.94); }
+        .lang-btn:active { transform: scale(0.93); }
 
-        /* ── Health card ── */
-        .health-card { padding: 20px; margin-bottom: 14px; display: flex; align-items: center; gap: 16px; }
-        .health-right { flex: 1; }
-        .health-plant-name { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 4px; }
-        .health-headline { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.02em; line-height: 1.1; }
-        .health-advice { font-size: 0.75rem; color: var(--muted); margin-top: 6px; line-height: 1.5;
-          display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-        .score-ring-wrap { display: flex; flex-direction: column; align-items: center; gap: 4px; flex-shrink: 0; }
-        .score-label { font-size: 0.72rem; font-weight: 600; letter-spacing: 0.02em; }
-
-        /* ── RGB card ── */
-        .rgb-card { padding: 14px 20px; margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between; }
-        .rgb-label-row { display: flex; flex-direction: column; gap: 6px; }
-        .rgb-title { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
-        .rgb-wrap { display: flex; align-items: center; gap: 10px; }
-        .rgb-orb { width: 28px; height: 28px; border-radius: 50%; transition: background 0.4s, box-shadow 0.4s; }
-        .rgb-label { font-size: 0.8rem; font-weight: 600; transition: color 0.4s; }
-        .notif-btn {
-          background: #f8fafc; border: 1px solid var(--border); border-radius: 12px;
-          padding: 7px 13px; font-size: 0.75rem; font-weight: 500; color: var(--muted);
-          cursor: pointer; transition: all 0.2s;
+        /* ── AI Command Center ─────────── */
+        .ai-hero {
+          background: linear-gradient(135deg, rgba(20,46,28,0.95), rgba(30,20,60,0.9));
+          border: 1px solid rgba(167,139,250,0.25);
+          border-radius: var(--r);
+          padding: 20px;
+          margin-bottom: 12px;
+          box-shadow: var(--shadow), 0 0 32px rgba(167,139,250,0.08);
+          position: relative;
+          overflow: hidden;
         }
-        .notif-btn.granted { background: #f0fdf4; border-color: #bbf7d0; color: var(--green); }
-        .notif-btn:active { transform: scale(0.96); }
-        .notif-ios-hint { display: flex; align-items: center; gap: 6px; font-size: 0.68rem; color: var(--muted); line-height: 1.3; }
-
-        /* ── Metrics ── */
-        .metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
-        .metric-card { padding: 16px; }
-        .metric-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 6px; }
-        .metric-value-row { display: flex; align-items: baseline; gap: 3px; margin-bottom: 8px; }
-        .metric-value { font-size: 2.4rem; font-weight: 700; letter-spacing: -0.04em; line-height: 1; font-family: 'DM Mono', monospace; }
-        .metric-unit { font-size: 0.85rem; color: var(--muted); font-weight: 500; }
-        .metric-status-row { display: flex; align-items: center; gap: 5px; margin-bottom: 10px; }
-        .metric-status-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
-        .metric-status-text { font-size: 0.72rem; font-weight: 600; }
-        .metric-range { font-size: 0.65rem; color: var(--subtle); margin-left: auto; font-family: 'DM Mono', monospace; }
-        .metric-bar-bg { height: 4px; background: #f1f5f9; border-radius: 4px; position: relative; overflow: hidden; }
-        .metric-bar-fill { height: 100%; border-radius: 4px; position: absolute; top: 0; left: 0; }
-        .metric-bar-zone { position: absolute; top: 0; height: 100%; background: rgba(34,197,94,0.15); border-radius: 4px; }
-
-        /* ── Indicators ── */
-        .indicators { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 14px; }
-        .indicator-card { padding: 14px 10px 12px; text-align: center; position: relative; transition: border-color 0.3s, box-shadow 0.3s; overflow: hidden; }
-        .indicator-card.active { border-color: var(--ic) !important; box-shadow: 0 4px 20px color-mix(in srgb, var(--ic) 15%, transparent) !important; }
-        .ind-icon-wrap { width: 42px; height: 42px; border-radius: 13px; margin: 0 auto 8px; display: flex; align-items: center; justify-content: center; position: relative; transition: background 0.3s; }
-        .ind-icon { font-size: 1.25rem; }
-        .ind-pulse { position: absolute; inset: -3px; border-radius: 16px; opacity: 0.25; animation: indpulse 2s infinite; }
-        @keyframes indpulse { 0%,100%{transform:scale(1);opacity:0.25} 50%{transform:scale(1.12);opacity:0.1} }
-        .ind-label { font-size: 0.68rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
-        .ind-sub { font-size: 0.72rem; margin-top: 2px; font-weight: 500; transition: color 0.3s; }
-
-        /* ── Charts ── */
-        .charts { display: flex; flex-direction: column; gap: 12px; margin-bottom: 14px; }
-        .chart-card { padding: 16px; }
-        .chart-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .chart-title { font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
-        .chart-unit { font-size: 0.7rem; font-family: 'DM Mono', monospace; }
-
-        /* ── Controls ── */
-        .controls-card { padding: 20px; margin-bottom: 14px; }
-        .section-title { font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 14px; }
-        .controls-grid { display: flex; flex-direction: column; gap: 10px; }
-        .ctrl-toggle {
-          width: 100%; display: flex; align-items: center; gap: 12px;
-          background: #f8fafc; border: 1.5px solid var(--border);
-          border-radius: 14px; padding: 13px 16px;
-          font-family: 'Inter', sans-serif; font-size: 0.88rem; font-weight: 500;
-          color: var(--muted); cursor: pointer; transition: all 0.22s; text-align: left;
+        .ai-hero::before {
+          content:"";
+          position: absolute; inset:0;
+          background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(167,139,250,0.08), transparent);
+          pointer-events: none;
         }
-        .ctrl-toggle.on { font-weight: 600; }
-        .ctrl-toggle.dim { opacity: 0.38; cursor: not-allowed; }
-        .ctrl-toggle:active:not(.dim) { transform: scale(0.98); }
-        .track { width: 40px; height: 24px; border-radius: 12px; background: #e2e8f0; position: relative; transition: background 0.22s; flex-shrink: 0; }
-        .thumb { position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 9px; background: white; box-shadow: 0 1px 4px rgba(0,0,0,0.18); transition: transform 0.22s; }
-        .ctrl-toggle.on .thumb { transform: translateX(16px); }
-        .ctrl-hint { font-size: 0.7rem; color: var(--subtle); text-align: center; margin-top: 8px; }
-
-        /* ── AI Panel ── */
-        .ai-card { padding: 20px; margin-bottom: 14px; }
-        .ai-header-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
-        .ai-badge { background: linear-gradient(135deg, #22c55e, #16a34a); color: white; border-radius: 8px; padding: 3px 9px; font-size: 0.68rem; font-weight: 600; letter-spacing: 0.04em; }
-        .ai-active { font-size: 0.72rem; color: var(--muted); font-family: 'DM Mono', monospace; }
-        .ai-active strong { color: var(--amber); }
-        .ai-input-row { display: flex; gap: 8px; margin-bottom: 12px; }
+        .ai-top-row {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin-bottom: 14px;
+        }
+        .ai-badge {
+          display: flex; align-items:center; gap:6px;
+          background: linear-gradient(135deg, #7c3aed, #4f46e5);
+          border-radius: 8px; padding: 4px 10px;
+          font-family: 'Space Grotesk', sans-serif;
+          font-size: 0.68rem; font-weight: 600; letter-spacing: 0.05em;
+          color: white;
+        }
+        .ai-active-tag {
+          font-size: 0.65rem; color: var(--gold);
+          font-family: 'JetBrains Mono', monospace;
+          background: rgba(245,158,11,0.1);
+          border: 1px solid rgba(245,158,11,0.2);
+          border-radius: 6px; padding: 3px 8px;
+        }
+        .ai-headline {
+          font-family: 'Space Grotesk', sans-serif;
+          font-size: 1.2rem; font-weight: 700; letter-spacing: -0.02em;
+          color: var(--text); margin-bottom: 5px;
+        }
+        .ai-subline {
+          font-size: 0.75rem; color: rgba(110,231,183,0.7);
+          line-height: 1.55; margin-bottom: 14px;
+        }
+        .ai-input-row { display:flex; gap:8px; margin-bottom:12px; }
         .ai-input {
-          flex: 1; background: #f8fafc; border: 1.5px solid var(--border);
-          border-radius: 14px; padding: 11px 14px; color: var(--text);
-          font-family: 'Inter', sans-serif; font-size: 0.88rem; outline: none;
-          transition: border-color 0.2s, box-shadow 0.2s; -webkit-appearance: none;
+          flex:1; background: rgba(0,0,0,0.4);
+          border: 1.5px solid rgba(167,139,250,0.25);
+          border-radius: var(--r-sm); padding: 12px 14px;
+          color: var(--text); font-family: 'Inter', sans-serif;
+          font-size: 0.88rem; outline: none;
+          transition: border-color 0.2s, box-shadow 0.2s;
+          -webkit-appearance: none;
         }
-        .ai-input:focus { border-color: var(--green); box-shadow: 0 0 0 3px #22c55e20; }
-        .ai-btn { background: linear-gradient(135deg, #22c55e, #16a34a); color: white; border: none; border-radius: 14px; padding: 11px 16px; font-family: 'Inter', sans-serif; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: opacity 0.2s, transform 0.15s; white-space: nowrap; }
-        .ai-btn:active { transform: scale(0.96); }
-        .ai-btn:disabled { opacity: 0.45; cursor: not-allowed; }
-        .ai-progress { height: 3px; background: #f1f5f9; border-radius: 3px; overflow: hidden; margin-bottom: 12px; }
-        .ai-progress-fill { height: 100%; background: linear-gradient(90deg, #22c55e, #16a34a); border-radius: 3px; animation: aiprog 1.4s ease-in-out infinite; }
-        @keyframes aiprog { 0%{width:0%;margin-left:0} 50%{width:55%;margin-left:22%} 100%{width:0%;margin-left:100%} }
-        .ai-error { font-size: 0.75rem; color: var(--red); margin-bottom: 10px; padding: 10px 12px; background: #fef2f2; border-radius: 10px; }
-        .ai-result { display: flex; flex-direction: column; gap: 10px; }
-        .ai-thresh-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; background: #f8fafc; border-radius: 14px; padding: 14px; }
-        .ai-thresh-item { text-align: center; }
-        .ai-thresh-val { font-family: 'DM Mono', monospace; font-size: 1.05rem; font-weight: 600; color: var(--amber); }
-        .ai-thresh-key { font-size: 0.65rem; color: var(--muted); margin-top: 2px; text-transform: uppercase; letter-spacing: 0.05em; }
-        .ai-advice-text { font-size: 0.8rem; line-height: 1.65; color: var(--muted); padding: 12px 14px; background: #f8fafc; border-radius: 14px; }
-        .ai-empty { font-size: 0.78rem; color: var(--subtle); line-height: 1.6; text-align: center; padding: 8px 0; }
+        .ai-input::placeholder { color: rgba(110,231,183,0.35); }
+        .ai-input:focus {
+          border-color: rgba(167,139,250,0.6);
+          box-shadow: 0 0 0 3px rgba(167,139,250,0.1);
+        }
+        .ai-btn {
+          background: linear-gradient(135deg, #7c3aed, #4f46e5);
+          color: white; border: none; border-radius: var(--r-sm);
+          padding: 12px 16px; font-family: 'Space Grotesk', sans-serif;
+          font-size: 0.85rem; font-weight: 700;
+          cursor: pointer; white-space: nowrap;
+          transition: opacity 0.2s, transform 0.15s;
+          box-shadow: 0 0 20px rgba(124,58,237,0.4);
+        }
+        .ai-btn:active { transform: scale(0.95); }
+        .ai-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+        .ai-progress {
+          height: 2px; background: rgba(167,139,250,0.15);
+          border-radius: 2px; overflow: hidden; margin-bottom: 12px;
+        }
+        .ai-progress-fill {
+          height: 100%; background: linear-gradient(90deg, #7c3aed, #22d3ee, #7c3aed);
+          background-size: 200% 100%;
+          animation: aiprog 1.6s ease-in-out infinite;
+        }
+        @keyframes aiprog { 0%{background-position:100% 0} 100%{background-position:-100% 0} }
+        .ai-error {
+          font-size: 0.75rem; color: var(--red);
+          background: rgba(248,113,113,0.08);
+          border: 1px solid rgba(248,113,113,0.2);
+          border-radius: var(--r-sm); padding: 10px 12px;
+          margin-bottom: 10px;
+        }
+        .ai-result { display:flex; flex-direction:column; gap:10px; }
+        .ai-thresh-row {
+          display: grid; grid-template-columns: 1fr 1fr;
+          gap: 8px;
+        }
+        .ai-thresh-card {
+          background: rgba(0,0,0,0.3);
+          border: 1px solid rgba(245,158,11,0.2);
+          border-radius: var(--r-sm); padding: 12px;
+          text-align: center;
+        }
+        .ai-thresh-val {
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 1.1rem; font-weight: 500; color: var(--gold);
+          display: block; margin-bottom: 3px;
+        }
+        .ai-thresh-key {
+          font-size: 0.62rem; color: var(--dim);
+          text-transform: uppercase; letter-spacing: 0.08em;
+        }
+        .ai-advice-box {
+          background: rgba(0,0,0,0.25);
+          border: 1px solid var(--border);
+          border-radius: var(--r-sm); padding: 12px 14px;
+          font-size: 0.79rem; line-height: 1.65;
+          color: rgba(110,231,183,0.8);
+        }
+        .ai-advice-label {
+          font-size: 0.6rem; text-transform:uppercase; letter-spacing:0.1em;
+          color: var(--dim); margin-bottom: 5px; display:block;
+        }
+        .ai-empty {
+          font-size: 0.77rem; color: rgba(110,231,183,0.4);
+          text-align: center; padding: 6px 0; line-height: 1.6;
+        }
 
-        .footer { text-align: center; font-size: 0.68rem; color: var(--subtle); font-family: 'DM Mono', monospace; padding: 8px 0 4px; }
+        /* ── Health + Live readings ────── */
+        .health-readings {
+          display: grid; grid-template-columns: auto 1fr;
+          gap: 12px; margin-bottom: 12px; align-items: stretch;
+        }
+        .health-card {
+          background: var(--surface);
+          border: 1px solid var(--border2);
+          border-radius: var(--r); padding: 16px;
+          display: flex; flex-direction:column; align-items:center;
+          gap: 8px; min-width: 120px;
+          box-shadow: var(--glow-g);
+        }
+        .health-ring-wrap { position:relative; width:110px; height:110px; }
+        .health-ring-wrap svg { width:100%; height:100%; }
+        .health-score-text {
+          position: absolute; inset:0; display:flex;
+          flex-direction:column; align-items:center; justify-content:center;
+        }
+        .health-num {
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 1.6rem; font-weight: 500; line-height:1;
+        }
+        .health-of {
+          font-size: 0.6rem; color: var(--dim); margin-top:1px;
+        }
+        .health-label-text {
+          font-family: 'Space Grotesk', sans-serif;
+          font-size: 0.72rem; font-weight: 600; letter-spacing:0.04em;
+          text-transform: uppercase;
+        }
+        .health-plant {
+          font-size: 0.62rem; color: var(--dim);
+          font-family: 'JetBrains Mono', monospace;
+          text-align: center; max-width: 100px;
+          overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+
+        /* ── Reading cards ─────────────── */
+        .readings { display:flex; flex-direction:column; gap:10px; }
+        .reading-card {
+          background: var(--surface);
+          border: 1px solid var(--border);
+          border-radius: var(--r-sm); padding: 14px 16px;
+          flex:1; position:relative; overflow:hidden;
+        }
+        .reading-label {
+          font-size: 0.62rem; text-transform:uppercase;
+          letter-spacing: 0.1em; color: var(--dim); margin-bottom:4px;
+        }
+        .reading-value-row { display:flex; align-items:baseline; gap:4px; margin-bottom:8px; }
+        .reading-val {
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 2rem; font-weight: 500; line-height:1;
+        }
+        .reading-unit { font-size: 0.8rem; color: var(--dim); }
+        .reading-status {
+          display:flex; align-items:center; gap:5px;
+          font-size: 0.68rem; font-weight: 600; margin-bottom:8px;
+        }
+        .status-pip { width:5px; height:5px; border-radius:50%; flex-shrink:0; }
+        .reading-range {
+          font-size: 0.6rem; color: var(--dim);
+          font-family: 'JetBrains Mono', monospace; margin-left:auto;
+        }
+        .bar-bg {
+          height: 3px; background: rgba(255,255,255,0.06);
+          border-radius: 3px; position:relative; overflow:hidden;
+        }
+        .bar-zone {
+          position:absolute; top:0; height:100%;
+          background: rgba(74,222,128,0.12); border-radius:3px;
+        }
+        .bar-fill {
+          height:100%; border-radius:3px; position:absolute; top:0; left:0;
+          transition: width 0.6s ease, background 0.4s;
+        }
+
+        /* ── RGB + Status strip ────────── */
+        .status-strip {
+          background: var(--surface);
+          border: 1px solid var(--border);
+          border-radius: var(--r); padding: 14px 16px;
+          margin-bottom: 12px;
+          display: flex; align-items:center; gap:12px;
+        }
+        .rgb-section { display:flex; align-items:center; gap:10px; flex:1; }
+        .rgb-orb-wrap { position:relative; }
+        .rgb-orb {
+          width: 36px; height: 36px; border-radius:50%;
+          transition: background 0.4s, box-shadow 0.5s;
+          flex-shrink:0;
+        }
+        .rgb-orb-inner {
+          position:absolute; inset:6px; border-radius:50%;
+          background: rgba(255,255,255,0.3);
+        }
+        .rgb-info { display:flex; flex-direction:column; gap:2px; }
+        .rgb-title { font-size:0.6rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--dim); }
+        .rgb-state { font-size:0.8rem; font-weight:600; font-family:'Space Grotesk',sans-serif; }
+        .notif-btn {
+          background: rgba(0,0,0,0.3);
+          border: 1px solid var(--border);
+          border-radius: var(--r-sm); padding: 7px 11px;
+          font-size: 0.7rem; font-weight: 500; color: var(--muted);
+          cursor: pointer; transition: all 0.2s; flex-shrink:0;
+          white-space: nowrap;
+        }
+        .notif-btn.on { border-color: rgba(74,222,128,0.4); color: var(--green); background: rgba(74,222,128,0.07); }
+        .notif-btn:active { transform: scale(0.94); }
+        .ios-hint { display:flex; align-items:center; gap:5px; font-size:0.65rem; color:var(--dim); }
+
+        /* ── Indicator row ─────────────── */
+        .indicators { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:12px; }
+        .ind-card {
+          background: var(--surface); border: 1px solid var(--border);
+          border-radius: var(--r-sm); padding: 12px 8px 10px;
+          text-align:center; transition: border-color 0.3s, box-shadow 0.3s;
+          cursor: default;
+        }
+        .ind-card.active {
+          border-color: var(--ic) !important;
+          box-shadow: 0 0 18px color-mix(in srgb, var(--ic) 20%, transparent) !important;
+        }
+        .ind-dot-wrap {
+          width:36px; height:36px; border-radius:10px; margin:0 auto 6px;
+          display:flex; align-items:center; justify-content:center;
+          transition: background 0.3s; background: rgba(255,255,255,0.04);
+          position:relative;
+        }
+        .ind-card.active .ind-dot-wrap {
+          background: color-mix(in srgb, var(--ic) 15%, transparent);
+        }
+        .ind-pulse {
+          position:absolute; inset:-3px; border-radius:13px;
+          opacity:0.2; animation: ipulse 2s ease-in-out infinite;
+        }
+        @keyframes ipulse { 0%,100%{transform:scale(1);opacity:0.2} 50%{transform:scale(1.1);opacity:0.07} }
+        .ind-icon { font-size:1.1rem; }
+        .ind-name {
+          font-size: 0.6rem; font-weight:600; text-transform:uppercase;
+          letter-spacing:0.09em; color:var(--dim); margin-bottom:2px;
+        }
+        .ind-state {
+          font-size: 0.7rem; font-weight:500; font-family:'Space Grotesk',sans-serif;
+          transition: color 0.3s; color: var(--dim);
+        }
+        .ind-card.active .ind-state { color: var(--ic) !important; }
+
+        /* ── Charts ────────────────────── */
+        .charts { display:flex; flex-direction:column; gap:10px; margin-bottom:12px; }
+        .chart-card {
+          background: var(--surface); border: 1px solid var(--border);
+          border-radius: var(--r); padding: 14px 16px;
+        }
+        .chart-top {
+          display:flex; align-items:center; justify-content:space-between;
+          margin-bottom: 10px;
+        }
+        .chart-name {
+          font-size: 0.68rem; font-weight:600; text-transform:uppercase;
+          letter-spacing:0.09em; color: var(--dim);
+        }
+        .chart-thresh {
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 0.65rem; color: var(--dim);
+        }
+
+        /* ── Controls ──────────────────── */
+        .controls-card {
+          background: var(--surface); border: 1px solid var(--border);
+          border-radius: var(--r); padding: 16px; margin-bottom: 12px;
+        }
+        .controls-title {
+          font-size: 0.62rem; text-transform:uppercase; letter-spacing:0.1em;
+          color: var(--dim); margin-bottom: 12px;
+        }
+        .ctrl-list { display:flex; flex-direction:column; gap:8px; }
+        .ctrl-row {
+          display:flex; align-items:center; justify-content:space-between;
+          background: rgba(0,0,0,0.25); border: 1px solid var(--border);
+          border-radius: var(--r-sm); padding: 12px 14px;
+          transition: all 0.22s;
+        }
+        .ctrl-row.active-ctrl { border-color: var(--ac) !important; background: color-mix(in srgb, var(--ac) 8%, rgba(0,0,0,0.3)) !important; }
+        .ctrl-row.dim { opacity:0.32; }
+        .ctrl-label { font-family:'Space Grotesk',sans-serif; font-size:0.88rem; font-weight:500; }
+        .ctrl-row.active-ctrl .ctrl-label { color: var(--ac); }
+        .track {
+          width:44px; height:26px; border-radius:13px;
+          background: rgba(255,255,255,0.08);
+          position:relative; transition: background 0.22s; flex-shrink:0;
+        }
+        .ctrl-row.active-ctrl .track { background: var(--ac) !important; }
+        .thumb {
+          position:absolute; top:3px; left:3px; width:20px; height:20px;
+          border-radius:10px; background:white;
+          box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+          transition: transform 0.22s;
+        }
+        .ctrl-row.active-ctrl .thumb { transform: translateX(18px); }
+        .ctrl-hint { font-size:0.68rem; color:var(--dim); text-align:center; margin-top:10px; }
+
+        /* ── Footer ────────────────────── */
+        .footer {
+          text-align:center; font-size:0.65rem; color:var(--dim);
+          font-family:'JetBrains Mono',monospace; padding:4px 0;
+        }
+
+        /* ── Scrollbar ─────────────────── */
+        ::-webkit-scrollbar { width:4px; }
+        ::-webkit-scrollbar-track { background:transparent; }
+        ::-webkit-scrollbar-thumb { background:rgba(74,222,128,0.2); border-radius:4px; }
 
         @supports (padding: max(0px)) {
           .app { padding-bottom: max(48px, env(safe-area-inset-bottom)); }
@@ -601,122 +645,225 @@ export default function App() {
 
       <div className="app">
 
-        {/* Header */}
+        {/* ── Header ── */}
         <div className="header">
-          <div className="header-left">
-            <div className="header-title">🌱 {t.appName}</div>
-            <div className="header-sub">{t.appSub}</div>
+          <div className="header-brand">
+            <div className="brand-leaf">🌱</div>
+            <div>
+              <div className="brand-name">{t.appName}</div>
+              <div className="brand-sub">{t.appSub}</div>
+            </div>
           </div>
           <div className="header-right">
-            <div className="live-badge">
-              <span className={`live-dot ${connDot}`} />
-              {connStatus}
+            <div className="pill">
+              <div className="pip" style={{ background: connColor, boxShadow: `0 0 6px ${connColor}` }} />
+              {connLabel}
             </div>
-            <LangToggle lang={lang} setLang={setLang} />
-          </div>
-        </div>
-
-        {/* Health Hero */}
-        <div className="health-card glass">
-          <ScoreRing score={score} label={t[health.key]} color={health.color} />
-          <div className="health-right">
-            <p className="health-plant-name">{thresh.plant || t.noPlant}</p>
-            <p className="health-headline" style={{ color: health.color }}>{t[health.key]}</p>
-            <p className="health-advice">{thresh.advice || t.askAI}</p>
-          </div>
-        </div>
-
-        {/* RGB + Notifications */}
-        <div className="rgb-card glass">
-          <div className="rgb-label-row">
-            <span className="rgb-title">{t.rgbTitle}</span>
-            <RGBDot fanOn={fanOn} pumpOn={pumpOn} autoMode={autoMode} t={t} />
-          </div>
-          {notifSupported ? (
-            <button className={`notif-btn ${notifGranted ? "granted" : ""}`} onClick={handleNotifBtn}>
-              {notifGranted ? t.alertsOn : t.enableAlerts}
+            <button className="lang-btn" onClick={() => setLang(l => l === "en" ? "ms" : "en")}>
+              {lang === "en" ? "🇲🇾 BM" : "🇬🇧 EN"}
             </button>
-          ) : (
-            <div className="notif-ios-hint">
-              <span>🔔</span><span>{t.addToHome}</span>
-            </div>
-          )}
-        </div>
-
-        {/* Metrics */}
-        <div className="metrics">
-          <Metric value={latest.temperature} unit="°C" label={t.temperature}
-            lowThresh={thresh.temp_low} highThresh={thresh.temp_high} color="#ef4444" t={t} />
-          <Metric value={latest.humidity} unit="%" label={t.humidity}
-            lowThresh={thresh.humid_low} highThresh={thresh.humid_high} color="#3b82f6" t={t} />
-        </div>
-
-        {/* Indicators */}
-        <div className="indicators">
-          <IndicatorCard active={fanOn}    color="#3b82f6" icon="💨"
-            label={t.fan}  subOn={t.running} subOff={t.idle} />
-          <IndicatorCard active={pumpOn}   color="#22c55e" icon="💧"
-            label={t.pump} subOn={t.misting} subOff={t.idle} />
-          <IndicatorCard active={autoMode} color="#f59e0b" icon="⚡"
-            label={t.auto} subOn={t.auto}    subOff={t.manual} />
-        </div>
-
-        {/* Charts */}
-        <div className="charts">
-          <Chart data={history} dataKey="temperature" color="#ef4444"
-            label={t.temperature} unit="°C" refLow={thresh.temp_low} refHigh={thresh.temp_high} />
-          <Chart data={history} dataKey="humidity" color="#3b82f6"
-            label={t.humidity} unit="%" refLow={thresh.humid_low} refHigh={thresh.humid_high} />
-        </div>
-
-        {/* Controls */}
-        <div className="controls-card glass">
-          <p className="section-title">{t.controls}</p>
-          <div className="controls-grid">
-            <Toggle active={autoMode} onToggle={toggleAuto} label={t.autoMode} color="#f59e0b" />
-            <Toggle active={fanOn}    onToggle={toggleFan}  label={t.fan}      color="#3b82f6" disabled={autoMode} />
-            <Toggle active={pumpOn}   onToggle={togglePump} label={t.pump}     color="#22c55e" disabled={autoMode} />
           </div>
-          {autoMode && <p className="ctrl-hint">{t.manualHint}</p>}
         </div>
 
-        {/* AI Panel */}
-        <div className="ai-card glass">
-          <div className="ai-header-row">
-            <span className="ai-badge">{t.aiTitle}</span>
-            {thresh.plant && <span className="ai-active">{t.aiActive} <strong>{thresh.plant}</strong></span>}
+        {/* ── AI Command Center ── */}
+        <div className="ai-hero">
+          <div className="ai-top-row">
+            <div className="ai-badge">✦ Groq AI</div>
+            {thresh.plant && <div className="ai-active-tag">{thresh.plant}</div>}
           </div>
+          <div className="ai-headline">{t.aiHero}</div>
+          <div className="ai-subline">{t.aiSub}</div>
           <div className="ai-input-row">
-            <input className="ai-input" value={plant}
+            <input
+              className="ai-input"
+              value={plant}
               onChange={e => setPlant(e.target.value)}
               onKeyDown={e => e.key === "Enter" && askAI()}
-              placeholder={t.aiPlaceholder} />
+              placeholder={t.aiPlaceholder}
+            />
             <button className="ai-btn" onClick={askAI} disabled={aiLoading}>
               {aiLoading ? t.aiLoading : t.aiBtn}
             </button>
           </div>
-          {aiLoading && <div className="ai-progress"><div className="ai-progress-fill" /></div>}
+          {aiLoading && <div className="ai-progress"><div className="ai-progress-fill"/></div>}
           {aiError && <div className="ai-error">⚠ {aiError}</div>}
           {thresh.advice ? (
             <div className="ai-result">
-              <div className="ai-thresh-grid">
-                <div className="ai-thresh-item">
-                  <div className="ai-thresh-val">{thresh.temp_low}–{thresh.temp_high}°C</div>
-                  <div className="ai-thresh-key">{t.tempRange}</div>
+              <div className="ai-thresh-row">
+                <div className="ai-thresh-card">
+                  <span className="ai-thresh-val">{thresh.temp_low}–{thresh.temp_high}°C</span>
+                  <span className="ai-thresh-key">{t.tempRange}</span>
                 </div>
-                <div className="ai-thresh-item">
-                  <div className="ai-thresh-val">{thresh.humid_low}–{thresh.humid_high}%</div>
-                  <div className="ai-thresh-key">{t.humidRange}</div>
+                <div className="ai-thresh-card">
+                  <span className="ai-thresh-val">{thresh.humid_low}–{thresh.humid_high}%</span>
+                  <span className="ai-thresh-key">{t.humidRange}</span>
                 </div>
               </div>
-              <div className="ai-advice-text">{thresh.advice}</div>
+              <div className="ai-advice-box">
+                <span className="ai-advice-label">{t.advice}</span>
+                {thresh.advice}
+              </div>
             </div>
           ) : !aiLoading && (
             <p className="ai-empty">{t.aiEmpty}</p>
           )}
         </div>
 
-        <p className="footer">{t.updated} {latest.ts || "--"}</p>
+        {/* ── Health + Readings ── */}
+        <div className="health-readings">
+          {/* Health ring */}
+          <div className="health-card">
+            <div className="health-ring-wrap">
+              <svg viewBox="0 0 120 120">
+                <circle cx="60" cy="60" r={r} fill="none"
+                  stroke="rgba(255,255,255,0.05)" strokeWidth="9"
+                  strokeDasharray={`${circ*0.75} ${circ}`}
+                  strokeDashoffset={circ*0.125} strokeLinecap="round" />
+                <circle cx="60" cy="60" r={r} fill="none"
+                  stroke={health.color} strokeWidth="9"
+                  strokeDasharray={`${arc} ${circ}`}
+                  strokeDashoffset={circ*0.125} strokeLinecap="round"
+                  style={{ filter:`drop-shadow(0 0 6px ${health.color})`, transition:"stroke-dasharray 0.8s ease, stroke 0.4s" }} />
+              </svg>
+              <div className="health-score-text">
+                <span className="health-num" style={{color:health.color}}>{score}</span>
+                <span className="health-of">/ 100</span>
+              </div>
+            </div>
+            <div className="health-label-text" style={{color:health.color}}>{t[health.key]}</div>
+            <div className="health-plant">{thresh.plant || t.noPlant}</div>
+          </div>
+
+          {/* Live readings */}
+          <div className="readings">
+            {[
+              { key:"temperature", val:latest.temperature, unit:"°C", color:"#f87171", low:thresh.temp_low, high:thresh.temp_high },
+              { key:"humidity",    val:latest.humidity,    unit:"%",  color:"#60a5fa", low:thresh.humid_low, high:thresh.humid_high },
+            ].map(({ key, val, unit, color, low, high }) => {
+              const ok = val >= low && val <= high;
+              const sc = ok ? "#4ade80" : val < low ? "#60a5fa" : "#f87171";
+              const st = ok ? t.optimal : val < low ? t.low : t.high;
+              const span = (high+5)-(low-5);
+              const pct = Math.min(100, Math.max(0, ((val-(low-5))/span)*100));
+              const zl  = ((low-(low-5))/span)*100;
+              const zw  = ((high-low)/span)*100;
+              return (
+                <div className="reading-card" key={key}>
+                  <div className="reading-label">{t[key]}</div>
+                  <div className="reading-value-row">
+                    <span className="reading-val" style={{color}}>{val.toFixed(1)}</span>
+                    <span className="reading-unit">{unit}</span>
+                  </div>
+                  <div className="reading-status">
+                    <div className="status-pip" style={{background:sc, boxShadow:`0 0 5px ${sc}`}}/>
+                    <span style={{color:sc}}>{st}</span>
+                    <span className="reading-range">{low}–{high}{unit}</span>
+                  </div>
+                  <div className="bar-bg">
+                    <div className="bar-zone" style={{left:`${zl}%`, width:`${zw}%`}}/>
+                    <div className="bar-fill" style={{width:`${pct}%`, background:sc}}/>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* ── Status strip ── */}
+        <div className="status-strip">
+          <div className="rgb-section">
+            <div className="rgb-orb-wrap">
+              <div className="rgb-orb" style={{ background:rgb.color, boxShadow:`0 0 18px ${rgb.color}90, 0 0 6px ${rgb.color}` }}>
+                <div className="rgb-orb-inner"/>
+              </div>
+            </div>
+            <div className="rgb-info">
+              <div className="rgb-title">{t.rgbStatus}</div>
+              <div className="rgb-state" style={{color:rgb.color}}>{t[rgb.key]}</div>
+            </div>
+          </div>
+          {notifSupported ? (
+            <button className={`notif-btn ${notifGranted ? "on" : ""}`}
+              onClick={async () => { const ok = await requestNotif(); setNotifGranted(ok); }}>
+              {notifGranted ? t.alertOn : t.alertOff}
+            </button>
+          ) : (
+            <div className="ios-hint">🔔 {t.alertIOS}</div>
+          )}
+        </div>
+
+        {/* ── Indicator row ── */}
+        <div className="indicators">
+          {[
+            { active:fanOn,    color:"#60a5fa", icon:"💨", key:"fan",  onSub:t.running, offSub:t.idle },
+            { active:pumpOn,   color:"#4ade80", icon:"💧", key:"pump", onSub:t.misting, offSub:t.idle },
+            { active:autoMode, color:"#fbbf24", icon:"⚡", key:"auto", onSub:t.auto,    offSub:t.manual },
+          ].map(({ active, color, icon, key, onSub, offSub }) => (
+            <div key={key}
+              className={`ind-card ${active?"active":""}`}
+              style={{"--ic":color}}>
+              <div className="ind-dot-wrap">
+                {active && <div className="ind-pulse" style={{background:color}}/>}
+                <span className="ind-icon">{icon}</span>
+              </div>
+              <div className="ind-name">{t[key]}</div>
+              <div className="ind-state">{active ? onSub : offSub}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* ── Charts ── */}
+        <div className="charts">
+          {[
+            { dKey:"temperature", color:"#f87171", name:t.temp, unit:"°C", rLow:thresh.temp_low, rHigh:thresh.temp_high },
+            { dKey:"humidity",    color:"#60a5fa", name:t.humid, unit:"%",  rLow:thresh.humid_low, rHigh:thresh.humid_high },
+          ].map(({ dKey, color, name, unit, rLow, rHigh }) => (
+            <div className="chart-card" key={dKey}>
+              <div className="chart-top">
+                <span className="chart-name">{name}</span>
+                <span className="chart-thresh">{rLow}–{rHigh} {unit}</span>
+              </div>
+              <ResponsiveContainer width="100%" height={120}>
+                <LineChart data={history.slice(-24)} margin={{top:4,right:4,left:-26,bottom:0}}>
+                  <XAxis dataKey="ts" tick={{fill:"#374151",fontSize:9}} interval="preserveStartEnd"/>
+                  <YAxis tick={{fill:"#374151",fontSize:9}}/>
+                  <Tooltip
+                    contentStyle={{background:"rgba(10,26,15,0.95)",border:"1px solid rgba(74,222,128,0.2)",borderRadius:10,fontSize:12}}
+                    labelStyle={{color:"#6ee7b7"}} itemStyle={{color}}/>
+                  <ReferenceLine y={rHigh} stroke={color} strokeDasharray="3 3" strokeOpacity={0.4}/>
+                  <ReferenceLine y={rLow}  stroke={color} strokeDasharray="3 3" strokeOpacity={0.4}/>
+                  <Line type="monotone" dataKey={dKey} stroke={color} strokeWidth={2}
+                    dot={false} activeDot={{r:4,fill:color,strokeWidth:0}}/>
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          ))}
+        </div>
+
+        {/* ── Controls ── */}
+        <div className="controls-card">
+          <div className="controls-title">{t.controls}</div>
+          <div className="ctrl-list">
+            {[
+              { active:autoMode, toggle:toggleAuto, label:t.autoMode, color:"#fbbf24", disabled:false },
+              { active:fanOn,    toggle:toggleFan,  label:t.fan,      color:"#60a5fa", disabled:autoMode },
+              { active:pumpOn,   toggle:togglePump, label:t.pump,     color:"#4ade80", disabled:autoMode },
+            ].map(({ active, toggle, label, color, disabled }) => (
+              <div key={label}
+                className={`ctrl-row ${active?"active-ctrl":""} ${disabled?"dim":""}`}
+                style={{"--ac":color}}
+                onClick={disabled ? undefined : toggle}>
+                <span className="ctrl-label">{label}</span>
+                <div className="track">
+                  <div className="thumb"/>
+                </div>
+              </div>
+            ))}
+          </div>
+          {autoMode && <div className="ctrl-hint">{t.manualHint}</div>}
+        </div>
+
+        <div className="footer">{t.updated} {latest.ts || "--"}</div>
       </div>
     </>
   );
