@@ -3,69 +3,63 @@ import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceL
 
 const API = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
-// ── i18n ──────────────────────────────────────
+// ── i18n ─────────────────────────────────────
 const T = {
   en: {
-    appName:"AI Planter", appSub:"Smart Greenhouse Control",
-    live:"Live", espOff:"ESP32 Offline", off:"Offline",
-    noPlant:"No plant selected",
+    sub:"Smart Greenhouse",
+    live:"Live", espOff:"Sensor offline", netOff:"Offline",
     temp:"Temperature", humid:"Humidity",
-    optimal:"Optimal", low:"Too low", high:"Too high",
+    optimal:"Within range", low:"Below range", high:"Above range",
     fan:"Fan", pump:"Pump", auto:"Auto",
     running:"Running", misting:"Misting", idle:"Idle", manual:"Manual",
-    controls:"Controls", autoMode:"Auto Mode",
-    manualHint:"Switch to Manual to override",
-    aiHero:"What are you growing today?",
-    aiSub:"Type a plant and the AI will set the perfect temperature and humidity thresholds automatically.",
-    aiPlaceholder:"e.g. tomato, orchid, chilli, basil…",
-    aiBtn:"Set & Control",
+    controls:"Controls",
+    autoMode:"Automatic", fanCtrl:"Fan", pumpCtrl:"Pump",
+    autoHint:"Disable Auto to control manually",
+    aiTitle:"Plant AI", aiBy:"Powered by Groq",
+    aiPlaceholder:"Enter plant name — tomato, orchid, basil…",
+    aiBtn:"Optimise",
     aiLoading:"Thinking…",
-    aiEmpty:"Enter a plant name above to get started.",
-    aiFail:"AI unavailable. Check GROQ_API_KEY on backend.",
-    activeFor:"Active thresholds for",
-    tempRange:"Temp range",
-    humidRange:"Humidity range",
-    updated:"Updated",
+    aiAdvice:"Recommendations",
+    aiEmpty:"Enter a plant name to receive AI-optimised thresholds.",
+    aiFail:"AI unavailable — check GROQ_API_KEY on backend.",
+    activeFor:"Optimised for",
     thriving:"Thriving", good:"Good", fair:"Fair", stressed:"Stressed",
-    standby:"Standby", fanAct:"Fan active", pumpAct:"Pump active",
-    fanPump:"Fan + Pump", manMode:"Manual",
-    alertOn:"🔔 Alerts on", alertOff:"🔕 Enable alerts",
-    alertIOS:"Add to Home Screen for alerts",
-    rgbStatus:"RGB Status",
     health:"Plant Health",
-    score:"Score",
-    advice:"Care advice",
+    standby:"Standby", fanAct:"Fan on", pumpAct:"Pump on",
+    fanPump:"Fan + Pump", manMode:"Manual",
+    alertOn:"Alerts on", alertOff:"Enable alerts",
+    alertIOS:"Add to Home Screen for alerts",
+    rgbLabel:"Device status",
+    updated:"Last updated",
+    setFor:"Thresholds set for",
   },
   ms: {
-    appName:"AI Planter", appSub:"Kawalan Rumah Hijau Pintar",
-    live:"Langsung", espOff:"ESP32 Luar Talian", off:"Luar Talian",
-    noPlant:"Tiada pokok dipilih",
+    sub:"Rumah Hijau Pintar",
+    live:"Langsung", espOff:"Penderia luar talian", netOff:"Luar Talian",
     temp:"Suhu", humid:"Kelembapan",
-    optimal:"Optimum", low:"Terlalu rendah", high:"Terlalu tinggi",
+    optimal:"Dalam julat", low:"Di bawah julat", high:"Melebihi julat",
     fan:"Kipas", pump:"Pam", auto:"Auto",
     running:"Berjalan", misting:"Menyembur", idle:"Rehat", manual:"Manual",
-    controls:"Kawalan", autoMode:"Mod Auto",
-    manualHint:"Tukar ke Manual untuk kawal sendiri",
-    aiHero:"Apa yang anda tanam hari ini?",
-    aiSub:"Taip nama pokok dan AI akan tetapkan ambang suhu dan kelembapan yang sempurna secara automatik.",
-    aiPlaceholder:"cth. tomato, orkid, cili, selasih…",
-    aiBtn:"Tetap & Kawal",
+    controls:"Kawalan",
+    autoMode:"Automatik", fanCtrl:"Kipas", pumpCtrl:"Pam",
+    autoHint:"Nyahaktifkan Auto untuk kawal sendiri",
+    aiTitle:"AI Pokok", aiBy:"Dikuasakan oleh Groq",
+    aiPlaceholder:"Nama pokok — tomato, orkid, selasih…",
+    aiBtn:"Optimumkan",
     aiLoading:"Sedang berfikir…",
-    aiEmpty:"Masukkan nama pokok di atas untuk bermula.",
-    aiFail:"AI tidak tersedia. Semak GROQ_API_KEY di backend.",
-    activeFor:"Ambang aktif untuk",
-    tempRange:"Julat suhu",
-    humidRange:"Julat kelembapan",
-    updated:"Dikemas kini",
+    aiAdvice:"Cadangan",
+    aiEmpty:"Masukkan nama pokok untuk ambang yang dioptimumkan oleh AI.",
+    aiFail:"AI tidak tersedia — semak GROQ_API_KEY.",
+    activeFor:"Dioptimumkan untuk",
     thriving:"Subur", good:"Baik", fair:"Sederhana", stressed:"Tertekan",
-    standby:"Sedia", fanAct:"Kipas aktif", pumpAct:"Pam aktif",
-    fanPump:"Kipas + Pam", manMode:"Manual",
-    alertOn:"🔔 Amaran aktif", alertOff:"🔕 Aktifkan amaran",
-    alertIOS:"Tambah ke Skrin Utama untuk amaran",
-    rgbStatus:"Status RGB",
     health:"Kesihatan Pokok",
-    score:"Skor",
-    advice:"Tip penjagaan",
+    standby:"Sedia", fanAct:"Kipas hidup", pumpAct:"Pam hidup",
+    fanPump:"Kipas + Pam", manMode:"Manual",
+    alertOn:"Amaran hidup", alertOff:"Aktifkan amaran",
+    alertIOS:"Tambah ke Skrin Utama",
+    rgbLabel:"Status peranti",
+    updated:"Dikemas kini",
+    setFor:"Ambang untuk",
   },
 };
 
@@ -80,7 +74,7 @@ function notify(title, body) {
     new Notification(title, { body, icon: "/icon-192.png" });
 }
 
-// ── Health ───────────────────────────────────
+// ── Health score ─────────────────────────────
 function calcHealth(temp, humid, th) {
   let s = 100;
   if (temp  > th.temp_high)  s -= Math.min(40, (temp  - th.temp_high)  * 9);
@@ -89,49 +83,87 @@ function calcHealth(temp, humid, th) {
   if (humid < th.humid_low)  s -= Math.min(30, (th.humid_low  - humid) * 3);
   return Math.max(0, Math.round(s));
 }
-function healthMeta(score) {
-  if (score >= 85) return { key:"thriving", color:"#4ade80", ring:"#166534" };
-  if (score >= 65) return { key:"good",     color:"#a3e635", ring:"#3f6212" };
-  if (score >= 40) return { key:"fair",     color:"#fbbf24", ring:"#92400e" };
-  return               { key:"stressed", color:"#f87171", ring:"#7f1d1d" };
+function healthMeta(score, t) {
+  if (score >= 85) return { label: t.thriving, color: "#2ECC71" };
+  if (score >= 65) return { label: t.good,     color: "#84CC16" };
+  if (score >= 40) return { label: t.fair,     color: "#F0B429" };
+  return               { label: t.stressed, color: "#F87171" };
 }
 
-// ── RGB orb ──────────────────────────────────
-function getRGB(fanOn, pumpOn, autoMode) {
-  if (!autoMode)            return { color:"#a78bfa", key:"manMode" };
-  if (fanOn && pumpOn)      return { color:"#22d3ee", key:"fanPump" };
-  if (fanOn)                return { color:"#60a5fa", key:"fanAct" };
-  if (pumpOn)               return { color:"#4ade80", key:"pumpAct" };
-  return                           { color:"#94a3b8", key:"standby" };
+// ── RGB state ────────────────────────────────
+function getRGB(fanOn, pumpOn, auto, t) {
+  if (!auto)          return { color: "#A78BFA", label: t.manMode };
+  if (fanOn && pumpOn) return { color: "#22D3EE", label: t.fanPump };
+  if (fanOn)           return { color: "#3B82F6", label: t.fanAct };
+  if (pumpOn)          return { color: "#2ECC71", label: t.pumpAct };
+  return                      { color: "#374151", label: t.standby };
 }
 
+// ── Threshold bar ─────────────────────────────
+function ThreshBar({ value, low, high, color }) {
+  const min = low - 4, max = high + 4, span = max - min;
+  const pct = Math.min(100, Math.max(0, ((value - min) / span) * 100));
+  const zl  = ((low  - min) / span) * 100;
+  const zw  = ((high - low) / span) * 100;
+  return (
+    <div style={{ height: 3, background: "#1E2025", borderRadius: 3, position: "relative", overflow: "hidden" }}>
+      <div style={{ position:"absolute", top:0, left:`${zl}%`, width:`${zw}%`, height:"100%", background: "rgba(255,255,255,0.06)", borderRadius: 3 }}/>
+      <div style={{ position:"absolute", top:0, left:0, width:`${pct}%`, height:"100%", background: color, borderRadius: 3, transition: "width 0.6s ease, background 0.4s" }}/>
+    </div>
+  );
+}
+
+// ── Toggle switch ────────────────────────────
+function Toggle({ on, onChange, disabled }) {
+  return (
+    <div onClick={disabled ? undefined : onChange}
+      style={{
+        width: 46, height: 26, borderRadius: 13, cursor: disabled ? "default" : "pointer",
+        background: on ? "#2ECC71" : "#2A2D33",
+        position: "relative", transition: "background 0.22s",
+        opacity: disabled ? 0.35 : 1, flexShrink: 0,
+        boxShadow: on ? "0 0 12px rgba(46,204,113,0.4)" : "none",
+      }}>
+      <div style={{
+        position: "absolute", top: 3, left: on ? 23 : 3,
+        width: 20, height: 20, borderRadius: 10, background: "white",
+        boxShadow: "0 1px 4px rgba(0,0,0,0.5)",
+        transition: "left 0.22s",
+      }}/>
+    </div>
+  );
+}
+
+// ── Main App ─────────────────────────────────
 export default function App() {
   const [lang, setLang]     = useState(() => localStorage.getItem("aip_lang") || "en");
   const t = T[lang];
-  const [latest, setLatest] = useState({ temperature:0, humidity:0, fan:false, pump:false, auto:true, ts:"--" });
-  const [history, setHistory] = useState([]);
-  const [thresh, setThresh]   = useState({ temp_high:25, temp_low:23, humid_low:40, humid_high:55, plant:"", advice:"" });
+
+  const [latest, setLatest] = useState({ temperature: 0, humidity: 0, fan: false, pump: false, auto: true, ts: "--" });
+  const [history, setHistory]   = useState([]);
+  const [thresh, setThresh]     = useState({ temp_high:25, temp_low:23, humid_low:40, humid_high:55, plant:"", advice:"" });
   const [autoMode, setAutoMode] = useState(true);
-  const [fanOn, setFanOn]     = useState(false);
-  const [pumpOn, setPumpOn]   = useState(false);
-  const [plant, setPlant]     = useState("");
+  const [fanOn, setFanOn]       = useState(false);
+  const [pumpOn, setPumpOn]     = useState(false);
+  const [plant, setPlant]       = useState("");
   const [aiLoading, setAiLoading] = useState(false);
   const [aiError, setAiError]     = useState("");
   const [backendOk, setBackendOk] = useState(false);
   const [espOk, setEspOk]         = useState(false);
   const [notifGranted, setNotifGranted]     = useState(false);
   const [notifSupported, setNotifSupported] = useState(false);
+
   const pendingRef = useRef({});
-  const prevRef    = useRef({ fan:false, pump:false, health:100 });
+  const prevRef    = useRef({ fan: false, pump: false, health: 100 });
   const lastTsRef  = useRef("--");
 
   useEffect(() => { localStorage.setItem("aip_lang", lang); }, [lang]);
 
   const score  = calcHealth(latest.temperature, latest.humidity, thresh);
-  const health = healthMeta(score);
-  const rgb    = getRGB(fanOn, pumpOn, autoMode);
+  const health = healthMeta(score, t);
+  const rgb    = getRGB(fanOn, pumpOn, autoMode, t);
 
-  // notifications
+  // notifications setup
   useEffect(() => {
     const s = "Notification" in window;
     setNotifSupported(s);
@@ -140,12 +172,12 @@ export default function App() {
 
   useEffect(() => {
     const prev = prevRef.current;
-    if (fanOn && !prev.fan)   notify("🌱 AI Planter", t.fan + " ON");
-    if (!fanOn && prev.fan)   notify("🌱 AI Planter", t.fan + " OFF");
-    if (pumpOn && !prev.pump) notify("🌱 AI Planter", t.pump + " ON");
-    if (!pumpOn && prev.pump) notify("🌱 AI Planter", t.pump + " OFF");
-    if (score < 40 && prev.health >= 40) notify("⚠️ AI Planter", `${t.stressed}! Score: ${score}`);
-    prevRef.current = { fan:fanOn, pump:pumpOn, health:score };
+    if (fanOn && !prev.fan)           notify("AI Planter", `${t.fan} ON`);
+    if (!fanOn && prev.fan)           notify("AI Planter", `${t.fan} OFF`);
+    if (pumpOn && !prev.pump)         notify("AI Planter", `${t.pump} ON`);
+    if (!pumpOn && prev.pump)         notify("AI Planter", `${t.pump} OFF`);
+    if (score < 40 && prev.health >= 40) notify("AI Planter", `${t.stressed} — score: ${score}`);
+    prevRef.current = { fan: fanOn, pump: pumpOn, health: score };
   }, [fanOn, pumpOn, score]);
 
   // poll
@@ -171,19 +203,28 @@ export default function App() {
     } catch { setBackendOk(false); setEspOk(false); }
   }, []);
 
-  useEffect(() => { poll(); const id = setInterval(poll, 5000); return () => clearInterval(id); }, [poll]);
+  useEffect(() => {
+    poll();
+    const id = setInterval(poll, 5000);
+    return () => clearInterval(id);
+  }, [poll]);
 
-  const clearPend = (k) => setTimeout(() => { pendingRef.current = { ...pendingRef.current, [k]:undefined }; }, 8000);
-  const send = (p) => fetch(`${API}/control`, { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(p) });
+  const clearPend = (k) => setTimeout(() => {
+    pendingRef.current = { ...pendingRef.current, [k]: undefined };
+  }, 8000);
+
+  const send = (p) => fetch(`${API}/control`, {
+    method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(p),
+  });
 
   const toggleAuto = () => {
     const n = !autoMode; setAutoMode(n);
     pendingRef.current.auto = n; clearPend("auto");
-    send({ auto:n });
+    send({ auto: n });
     if (n) { setFanOn(false); setPumpOn(false); pendingRef.current.fan = undefined; pendingRef.current.pump = undefined; }
   };
-  const toggleFan  = () => { if (autoMode) return; const n=!fanOn;  setFanOn(n);  pendingRef.current.fan=n;  clearPend("fan");  send({fan:n}); };
-  const togglePump = () => { if (autoMode) return; const n=!pumpOn; setPumpOn(n); pendingRef.current.pump=n; clearPend("pump"); send({pump:n}); };
+  const toggleFan  = () => { if (autoMode) return; const n = !fanOn;  setFanOn(n);  pendingRef.current.fan  = n; clearPend("fan");  send({ fan: n }); };
+  const togglePump = () => { if (autoMode) return; const n = !pumpOn; setPumpOn(n); pendingRef.current.pump = n; clearPend("pump"); send({ pump: n }); };
 
   const askAI = async () => {
     if (!plant.trim()) return;
@@ -192,647 +233,587 @@ export default function App() {
       const r = await fetch(`${API}/ai-advice?plant=${encodeURIComponent(plant)}`);
       if (!r.ok) throw new Error(await r.text());
       const d = await r.json();
-      if (d.thresholds) { setThresh(d.thresholds); notify("🌱 AI Planter", `Thresholds set for ${plant}`); }
+      if (d.thresholds) { setThresh(d.thresholds); notify("AI Planter", `${t.setFor} ${plant}`); }
     } catch { setAiError(t.aiFail); }
     setAiLoading(false);
   };
 
-  const connLabel = !backendOk ? t.off : !espOk ? t.espOff : t.live;
-  const connColor = espOk ? "#4ade80" : backendOk ? "#fbbf24" : "#f87171";
+  const connLabel = !backendOk ? t.netOff : !espOk ? t.espOff : t.live;
+  const connColor = espOk ? "#2ECC71" : backendOk ? "#F0B429" : "#F87171";
 
-  // ring arc
-  const r = 52, circ = 2 * Math.PI * r;
-  const arc = (score / 100) * circ * 0.75;
+  // health ring
+  const R = 40, C = 2 * Math.PI * R;
+  const arc = (score / 100) * C * 0.75;
 
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Inter:wght@400;500&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&family=DM+Mono:wght@400;500&display=swap');
 
-        *, *::before, *::after { box-sizing: border-box; margin:0; padding:0; }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
         :root {
-          --bg:        #0a1a0f;
-          --bg2:       #0f2416;
-          --surface:   rgba(15,36,22,0.85);
-          --surface2:  rgba(20,46,28,0.9);
-          --border:    rgba(74,222,128,0.12);
-          --border2:   rgba(74,222,128,0.22);
-          --text:      #ecfdf5;
-          --muted:     #6ee7b7;
-          --subtle:    #34d399;
-          --dim:       #4b5563;
-          --green:     #4ade80;
-          --mint:      #6ee7b7;
-          --amber:     #fbbf24;
-          --blue:      #60a5fa;
-          --red:       #f87171;
-          --purple:    #a78bfa;
-          --cyan:      #22d3ee;
-          --gold:      #f59e0b;
-          --r:         18px;
-          --r-sm:      12px;
-          --shadow:    0 4px 32px rgba(0,0,0,0.5);
-          --glow-g:    0 0 20px rgba(74,222,128,0.15);
-          --glow-a:    0 0 24px rgba(245,158,11,0.2);
+          --bg:       #0E0F11;
+          --s1:       #16181C;
+          --s2:       #1C1E23;
+          --s3:       #242629;
+          --border:   #2A2D33;
+          --border2:  #32363E;
+          --text:     #E2E8F0;
+          --muted:    #94A3B8;
+          --dim:      #4B5563;
+          --green:    #2ECC71;
+          --amber:    #F0B429;
+          --blue:     #3B82F6;
+          --red:      #F87171;
+          --purple:   #A78BFA;
+          --r:        16px;
+          --r-sm:     10px;
         }
 
-        html { -webkit-text-size-adjust:100%; scroll-behavior:smooth; }
+        html { -webkit-text-size-adjust: 100%; }
 
         body {
           background: var(--bg);
-          background-image:
-            radial-gradient(ellipse 60% 40% at 15% 0%, rgba(74,222,128,0.07) 0%, transparent 60%),
-            radial-gradient(ellipse 50% 50% at 85% 100%, rgba(34,211,238,0.05) 0%, transparent 60%);
-          background-attachment: fixed;
           color: var(--text);
-          font-family: 'Inter', sans-serif;
+          font-family: 'DM Sans', -apple-system, sans-serif;
           min-height: 100dvh;
-          padding-bottom: env(safe-area-inset-bottom, 16px);
-          overflow-x: hidden;
+          overscroll-behavior: none;
         }
 
-        .app {
-          max-width: 440px;
+        .wrap {
+          max-width: 420px;
           margin: 0 auto;
-          padding: 0 14px 48px;
-          padding-top: max(16px, env(safe-area-inset-top, 16px));
+          padding: 0 16px 56px;
+          padding-top: max(20px, env(safe-area-inset-top, 20px));
         }
 
-        /* ── Header ───────────────────── */
-        .header {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          padding: 4px 0 20px;
+        /* ── Typography scale ── */
+        .label {
+          font-size: 11px; font-weight: 500; letter-spacing: 0.08em;
+          text-transform: uppercase; color: var(--dim);
         }
-        .header-brand { display:flex; align-items:center; gap:9px; }
-        .brand-leaf {
-          width: 34px; height: 34px; border-radius: 10px;
-          background: linear-gradient(135deg, #166534, #4ade80);
-          display: flex; align-items:center; justify-content:center;
-          font-size: 18px; box-shadow: 0 0 16px rgba(74,222,128,0.3);
+        .mono { font-family: 'DM Mono', monospace; }
+
+        /* ── Header ── */
+        .hdr {
+          display: flex; align-items: center;
+          justify-content: space-between;
+          padding-bottom: 20px;
+        }
+        .hdr-brand {
+          display: flex; align-items: center; gap: 10px;
+        }
+        .brand-mark {
+          width: 32px; height: 32px; border-radius: 9px;
+          background: linear-gradient(145deg, #166534 0%, #2ECC71 100%);
+          display: flex; align-items: center; justify-content: center;
+          font-size: 16px;
+          box-shadow: 0 2px 8px rgba(46,204,113,0.25);
         }
         .brand-name {
-          font-family: 'Space Grotesk', sans-serif;
-          font-size: 1.05rem; font-weight: 700; letter-spacing: -0.01em;
-          color: var(--text);
+          font-size: 15px; font-weight: 600; letter-spacing: -0.01em;
         }
-        .brand-sub {
-          font-size: 0.65rem; color: var(--muted);
-          font-family: 'Inter', sans-serif; margin-top: 1px;
+        .brand-tag {
+          font-size: 11px; color: var(--dim); margin-top: 1px;
+          letter-spacing: 0.01em;
         }
-        .header-right { display:flex; align-items:center; gap:8px; }
-        .pill {
-          display: flex; align-items:center; gap:5px;
-          background: rgba(0,0,0,0.4); border: 1px solid var(--border2);
+        .hdr-right { display: flex; align-items: center; gap: 7px; }
+        .status-pill {
+          display: flex; align-items: center; gap: 5px;
+          background: var(--s1); border: 1px solid var(--border);
           border-radius: 20px; padding: 5px 10px;
-          font-size: 0.7rem; font-weight: 500;
+          font-size: 11px; font-weight: 500; color: var(--muted);
         }
-        .pip { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
-        .lang-btn {
-          background: rgba(0,0,0,0.4); border: 1px solid var(--border2);
+        .pip {
+          width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
+        }
+        .lang-pill {
+          background: var(--s1); border: 1px solid var(--border);
           border-radius: 20px; padding: 5px 10px;
-          font-size: 0.7rem; font-weight: 600; color: var(--muted);
-          cursor: pointer; transition: all 0.18s;
+          font-size: 11px; font-weight: 600; color: var(--muted);
+          cursor: pointer; transition: border-color 0.15s;
         }
-        .lang-btn:active { transform: scale(0.93); }
+        .lang-pill:active { transform: scale(0.93); }
 
-        /* ── AI Command Center ─────────── */
-        .ai-hero {
-          background: linear-gradient(135deg, rgba(20,46,28,0.95), rgba(30,20,60,0.9));
-          border: 1px solid rgba(167,139,250,0.25);
+        /* ── Section spacing ── */
+        .section { margin-bottom: 10px; }
+
+        /* ── Card ── */
+        .card {
+          background: var(--s1);
+          border: 1px solid var(--border);
           border-radius: var(--r);
-          padding: 20px;
-          margin-bottom: 12px;
-          box-shadow: var(--shadow), 0 0 32px rgba(167,139,250,0.08);
-          position: relative;
-          overflow: hidden;
         }
-        .ai-hero::before {
-          content:"";
-          position: absolute; inset:0;
-          background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(167,139,250,0.08), transparent);
-          pointer-events: none;
+
+        /* ── SENSOR HERO ── */
+        .sensor-hero {
+          display: grid; grid-template-columns: 1fr 1fr;
+          gap: 1px; background: var(--border);
+          border-radius: var(--r); overflow: hidden;
+        }
+        .sensor-cell {
+          background: var(--s1); padding: 20px 18px 18px;
+          position: relative;
+        }
+        .sensor-label { margin-bottom: 12px; }
+        .sensor-big {
+          font-family: 'DM Mono', monospace;
+          font-size: 52px; font-weight: 400; line-height: 1;
+          letter-spacing: -0.03em; margin-bottom: 2px;
+        }
+        .sensor-unit {
+          font-family: 'DM Mono', monospace;
+          font-size: 18px; color: var(--muted); margin-left: 2px;
+        }
+        .sensor-status {
+          display: flex; align-items: center; gap: 5px;
+          font-size: 12px; font-weight: 500; margin-top: 10px;
+          margin-bottom: 8px;
+        }
+        .sensor-range {
+          font-size: 10px; font-family: 'DM Mono', monospace;
+          color: var(--dim); margin-top: 4px;
+        }
+        .sensor-divider {
+          position: absolute; right: 0; top: 20px; bottom: 20px;
+          width: 1px; background: var(--border);
+        }
+
+        /* ── AI Panel ── */
+        .ai-card {
+          background: var(--s1); border: 1px solid var(--border2);
+          border-radius: var(--r); overflow: hidden;
+        }
+        .ai-card-top {
+          padding: 16px 18px 14px;
+          border-bottom: 1px solid var(--border);
         }
         .ai-top-row {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          margin-bottom: 14px;
+          display: flex; align-items: center;
+          justify-content: space-between; margin-bottom: 12px;
         }
-        .ai-badge {
-          display: flex; align-items:center; gap:6px;
-          background: linear-gradient(135deg, #7c3aed, #4f46e5);
-          border-radius: 8px; padding: 4px 10px;
-          font-family: 'Space Grotesk', sans-serif;
-          font-size: 0.68rem; font-weight: 600; letter-spacing: 0.05em;
-          color: white;
+        .ai-title-group { display: flex; align-items: baseline; gap: 8px; }
+        .ai-title {
+          font-size: 15px; font-weight: 600; letter-spacing: -0.01em;
         }
-        .ai-active-tag {
-          font-size: 0.65rem; color: var(--gold);
-          font-family: 'JetBrains Mono', monospace;
-          background: rgba(245,158,11,0.1);
-          border: 1px solid rgba(245,158,11,0.2);
+        .ai-by {
+          font-size: 11px; color: var(--dim);
+        }
+        .ai-active {
+          font-size: 11px; font-family: 'DM Mono', monospace;
+          color: var(--amber);
+          background: rgba(240,180,41,0.08);
+          border: 1px solid rgba(240,180,41,0.2);
           border-radius: 6px; padding: 3px 8px;
         }
-        .ai-headline {
-          font-family: 'Space Grotesk', sans-serif;
-          font-size: 1.2rem; font-weight: 700; letter-spacing: -0.02em;
-          color: var(--text); margin-bottom: 5px;
-        }
-        .ai-subline {
-          font-size: 0.75rem; color: rgba(110,231,183,0.7);
-          line-height: 1.55; margin-bottom: 14px;
-        }
-        .ai-input-row { display:flex; gap:8px; margin-bottom:12px; }
+        .ai-input-row { display: flex; gap: 8px; }
         .ai-input {
-          flex:1; background: rgba(0,0,0,0.4);
-          border: 1.5px solid rgba(167,139,250,0.25);
-          border-radius: var(--r-sm); padding: 12px 14px;
-          color: var(--text); font-family: 'Inter', sans-serif;
-          font-size: 0.88rem; outline: none;
-          transition: border-color 0.2s, box-shadow 0.2s;
+          flex: 1; background: var(--s3); border: 1px solid var(--border2);
+          border-radius: var(--r-sm); padding: 11px 13px;
+          color: var(--text); font-family: 'DM Sans', sans-serif;
+          font-size: 14px; outline: none;
+          transition: border-color 0.18s, box-shadow 0.18s;
           -webkit-appearance: none;
         }
-        .ai-input::placeholder { color: rgba(110,231,183,0.35); }
+        .ai-input::placeholder { color: var(--dim); }
         .ai-input:focus {
-          border-color: rgba(167,139,250,0.6);
-          box-shadow: 0 0 0 3px rgba(167,139,250,0.1);
+          border-color: var(--amber);
+          box-shadow: 0 0 0 3px rgba(240,180,41,0.1);
         }
         .ai-btn {
-          background: linear-gradient(135deg, #7c3aed, #4f46e5);
-          color: white; border: none; border-radius: var(--r-sm);
-          padding: 12px 16px; font-family: 'Space Grotesk', sans-serif;
-          font-size: 0.85rem; font-weight: 700;
-          cursor: pointer; white-space: nowrap;
-          transition: opacity 0.2s, transform 0.15s;
-          box-shadow: 0 0 20px rgba(124,58,237,0.4);
+          background: var(--amber); color: #0E0F11;
+          border: none; border-radius: var(--r-sm);
+          padding: 11px 18px; font-family: 'DM Sans', sans-serif;
+          font-size: 14px; font-weight: 600; cursor: pointer;
+          white-space: nowrap; transition: opacity 0.18s, transform 0.12s;
+          letter-spacing: -0.01em;
         }
-        .ai-btn:active { transform: scale(0.95); }
-        .ai-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
-        .ai-progress {
-          height: 2px; background: rgba(167,139,250,0.15);
-          border-radius: 2px; overflow: hidden; margin-bottom: 12px;
+        .ai-btn:active { transform: scale(0.96); }
+        .ai-btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+        .ai-prog-bar {
+          height: 2px; background: rgba(240,180,41,0.1);
+          overflow: hidden; margin-top: 10px;
         }
-        .ai-progress-fill {
-          height: 100%; background: linear-gradient(90deg, #7c3aed, #22d3ee, #7c3aed);
-          background-size: 200% 100%;
-          animation: aiprog 1.6s ease-in-out infinite;
+        .ai-prog-fill {
+          height: 100%; background: var(--amber);
+          animation: aprog 1.4s ease-in-out infinite;
         }
-        @keyframes aiprog { 0%{background-position:100% 0} 100%{background-position:-100% 0} }
-        .ai-error {
-          font-size: 0.75rem; color: var(--red);
-          background: rgba(248,113,113,0.08);
-          border: 1px solid rgba(248,113,113,0.2);
-          border-radius: var(--r-sm); padding: 10px 12px;
-          margin-bottom: 10px;
+        @keyframes aprog {
+          0%   { transform: translateX(-100%) scaleX(0.4); }
+          50%  { transform: translateX(60%)   scaleX(0.6); }
+          100% { transform: translateX(200%)  scaleX(0.4); }
         }
-        .ai-result { display:flex; flex-direction:column; gap:10px; }
-        .ai-thresh-row {
-          display: grid; grid-template-columns: 1fr 1fr;
-          gap: 8px;
+        .ai-err {
+          margin-top: 10px; padding: 9px 12px;
+          background: rgba(248,113,113,0.07);
+          border: 1px solid rgba(248,113,113,0.15);
+          border-radius: 8px; font-size: 13px; color: var(--red);
         }
-        .ai-thresh-card {
-          background: rgba(0,0,0,0.3);
-          border: 1px solid rgba(245,158,11,0.2);
-          border-radius: var(--r-sm); padding: 12px;
-          text-align: center;
+        .ai-body { padding: 16px 18px; }
+        .ai-thresh-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+        .ai-thresh-item {
+          background: var(--s2); border: 1px solid var(--border);
+          border-radius: var(--r-sm); padding: 12px 14px;
         }
         .ai-thresh-val {
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 1.1rem; font-weight: 500; color: var(--gold);
-          display: block; margin-bottom: 3px;
+          font-family: 'DM Mono', monospace; font-size: 17px;
+          font-weight: 500; color: var(--amber); display: block; margin-bottom: 3px;
         }
-        .ai-thresh-key {
-          font-size: 0.62rem; color: var(--dim);
-          text-transform: uppercase; letter-spacing: 0.08em;
+        .ai-thresh-key { font-size: 11px; color: var(--dim); }
+        .ai-advice-block {
+          background: var(--s2); border: 1px solid var(--border);
+          border-radius: var(--r-sm); padding: 13px 14px;
         }
-        .ai-advice-box {
-          background: rgba(0,0,0,0.25);
-          border: 1px solid var(--border);
-          border-radius: var(--r-sm); padding: 12px 14px;
-          font-size: 0.79rem; line-height: 1.65;
-          color: rgba(110,231,183,0.8);
-        }
-        .ai-advice-label {
-          font-size: 0.6rem; text-transform:uppercase; letter-spacing:0.1em;
-          color: var(--dim); margin-bottom: 5px; display:block;
+        .ai-advice-title { margin-bottom: 6px; }
+        .ai-advice-text {
+          font-size: 13px; line-height: 1.65; color: var(--muted);
+          font-style: italic;
         }
         .ai-empty {
-          font-size: 0.77rem; color: rgba(110,231,183,0.4);
-          text-align: center; padding: 6px 0; line-height: 1.6;
+          font-size: 13px; color: var(--dim);
+          text-align: center; padding: 4px 0; line-height: 1.6;
         }
 
-        /* ── Health + Live readings ────── */
-        .health-readings {
-          display: grid; grid-template-columns: auto 1fr;
-          gap: 12px; margin-bottom: 12px; align-items: stretch;
+        /* ── Status row ── */
+        .status-row {
+          display: grid; grid-template-columns: 1fr 1fr;
+          gap: 10px;
         }
+
+        /* ── Health card ── */
         .health-card {
-          background: var(--surface);
-          border: 1px solid var(--border2);
+          background: var(--s1); border: 1px solid var(--border);
           border-radius: var(--r); padding: 16px;
-          display: flex; flex-direction:column; align-items:center;
-          gap: 8px; min-width: 120px;
-          box-shadow: var(--glow-g);
+          display: flex; align-items: center; gap: 14px;
         }
-        .health-ring-wrap { position:relative; width:110px; height:110px; }
-        .health-ring-wrap svg { width:100%; height:100%; }
-        .health-score-text {
-          position: absolute; inset:0; display:flex;
-          flex-direction:column; align-items:center; justify-content:center;
+        .health-ring { position: relative; width: 88px; height: 88px; flex-shrink: 0; }
+        .health-ring svg { width: 100%; height: 100%; overflow: visible; }
+        .health-overlay {
+          position: absolute; inset: 0;
+          display: flex; flex-direction: column;
+          align-items: center; justify-content: center;
         }
         .health-num {
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 1.6rem; font-weight: 500; line-height:1;
+          font-family: 'DM Mono', monospace;
+          font-size: 22px; font-weight: 500; line-height: 1;
         }
-        .health-of {
-          font-size: 0.6rem; color: var(--dim); margin-top:1px;
+        .health-denom { font-size: 9px; color: var(--dim); margin-top: 1px; }
+        .health-info { flex: 1; min-width: 0; }
+        .health-status {
+          font-size: 14px; font-weight: 600; letter-spacing: -0.01em;
+          margin-bottom: 3px;
         }
-        .health-label-text {
-          font-family: 'Space Grotesk', sans-serif;
-          font-size: 0.72rem; font-weight: 600; letter-spacing:0.04em;
-          text-transform: uppercase;
-        }
-        .health-plant {
-          font-size: 0.62rem; color: var(--dim);
-          font-family: 'JetBrains Mono', monospace;
-          text-align: center; max-width: 100px;
-          overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-        }
+        .health-plant { font-size: 11px; color: var(--dim); font-family: 'DM Mono', monospace; }
 
-        /* ── Reading cards ─────────────── */
-        .readings { display:flex; flex-direction:column; gap:10px; }
-        .reading-card {
-          background: var(--surface);
-          border: 1px solid var(--border);
-          border-radius: var(--r-sm); padding: 14px 16px;
-          flex:1; position:relative; overflow:hidden;
+        /* ── RGB status card ── */
+        .rgb-card {
+          background: var(--s1); border: 1px solid var(--border);
+          border-radius: var(--r); padding: 16px;
+          display: flex; flex-direction: column; justify-content: space-between;
+          gap: 12px;
         }
-        .reading-label {
-          font-size: 0.62rem; text-transform:uppercase;
-          letter-spacing: 0.1em; color: var(--dim); margin-bottom:4px;
+        .rgb-indicator { display: flex; align-items: center; gap: 10px; }
+        .rgb-dot {
+          width: 32px; height: 32px; border-radius: 50%;
+          flex-shrink: 0; transition: background 0.4s, box-shadow 0.5s;
         }
-        .reading-value-row { display:flex; align-items:baseline; gap:4px; margin-bottom:8px; }
-        .reading-val {
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 2rem; font-weight: 500; line-height:1;
-        }
-        .reading-unit { font-size: 0.8rem; color: var(--dim); }
-        .reading-status {
-          display:flex; align-items:center; gap:5px;
-          font-size: 0.68rem; font-weight: 600; margin-bottom:8px;
-        }
-        .status-pip { width:5px; height:5px; border-radius:50%; flex-shrink:0; }
-        .reading-range {
-          font-size: 0.6rem; color: var(--dim);
-          font-family: 'JetBrains Mono', monospace; margin-left:auto;
-        }
-        .bar-bg {
-          height: 3px; background: rgba(255,255,255,0.06);
-          border-radius: 3px; position:relative; overflow:hidden;
-        }
-        .bar-zone {
-          position:absolute; top:0; height:100%;
-          background: rgba(74,222,128,0.12); border-radius:3px;
-        }
-        .bar-fill {
-          height:100%; border-radius:3px; position:absolute; top:0; left:0;
-          transition: width 0.6s ease, background 0.4s;
-        }
-
-        /* ── RGB + Status strip ────────── */
-        .status-strip {
-          background: var(--surface);
-          border: 1px solid var(--border);
-          border-radius: var(--r); padding: 14px 16px;
-          margin-bottom: 12px;
-          display: flex; align-items:center; gap:12px;
-        }
-        .rgb-section { display:flex; align-items:center; gap:10px; flex:1; }
-        .rgb-orb-wrap { position:relative; }
-        .rgb-orb {
-          width: 36px; height: 36px; border-radius:50%;
-          transition: background 0.4s, box-shadow 0.5s;
-          flex-shrink:0;
-        }
-        .rgb-orb-inner {
-          position:absolute; inset:6px; border-radius:50%;
-          background: rgba(255,255,255,0.3);
-        }
-        .rgb-info { display:flex; flex-direction:column; gap:2px; }
-        .rgb-title { font-size:0.6rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--dim); }
-        .rgb-state { font-size:0.8rem; font-weight:600; font-family:'Space Grotesk',sans-serif; }
+        .rgb-dot-inner { width: 100%; height: 100%; border-radius: 50%; background: rgba(255,255,255,0.2); }
+        .rgb-name { font-size: 13px; font-weight: 500; }
+        .rgb-label-text { font-size: 11px; color: var(--dim); margin-top: 1px; }
         .notif-btn {
-          background: rgba(0,0,0,0.3);
-          border: 1px solid var(--border);
-          border-radius: var(--r-sm); padding: 7px 11px;
-          font-size: 0.7rem; font-weight: 500; color: var(--muted);
-          cursor: pointer; transition: all 0.2s; flex-shrink:0;
-          white-space: nowrap;
+          width: 100%; background: var(--s2); border: 1px solid var(--border2);
+          border-radius: 8px; padding: 8px 12px;
+          font-size: 12px; font-weight: 500; color: var(--muted);
+          cursor: pointer; text-align: center; transition: all 0.18s;
+          font-family: 'DM Sans', sans-serif;
         }
-        .notif-btn.on { border-color: rgba(74,222,128,0.4); color: var(--green); background: rgba(74,222,128,0.07); }
-        .notif-btn:active { transform: scale(0.94); }
-        .ios-hint { display:flex; align-items:center; gap:5px; font-size:0.65rem; color:var(--dim); }
+        .notif-btn.on { color: var(--green); border-color: rgba(46,204,113,0.3); background: rgba(46,204,113,0.05); }
+        .notif-btn:active { transform: scale(0.97); }
+        .ios-hint { font-size: 11px; color: var(--dim); text-align: center; line-height: 1.4; }
 
-        /* ── Indicator row ─────────────── */
-        .indicators { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:12px; }
-        .ind-card {
-          background: var(--surface); border: 1px solid var(--border);
-          border-radius: var(--r-sm); padding: 12px 8px 10px;
-          text-align:center; transition: border-color 0.3s, box-shadow 0.3s;
-          cursor: default;
-        }
-        .ind-card.active {
-          border-color: var(--ic) !important;
-          box-shadow: 0 0 18px color-mix(in srgb, var(--ic) 20%, transparent) !important;
-        }
-        .ind-dot-wrap {
-          width:36px; height:36px; border-radius:10px; margin:0 auto 6px;
-          display:flex; align-items:center; justify-content:center;
-          transition: background 0.3s; background: rgba(255,255,255,0.04);
-          position:relative;
-        }
-        .ind-card.active .ind-dot-wrap {
-          background: color-mix(in srgb, var(--ic) 15%, transparent);
-        }
-        .ind-pulse {
-          position:absolute; inset:-3px; border-radius:13px;
-          opacity:0.2; animation: ipulse 2s ease-in-out infinite;
-        }
-        @keyframes ipulse { 0%,100%{transform:scale(1);opacity:0.2} 50%{transform:scale(1.1);opacity:0.07} }
-        .ind-icon { font-size:1.1rem; }
-        .ind-name {
-          font-size: 0.6rem; font-weight:600; text-transform:uppercase;
-          letter-spacing:0.09em; color:var(--dim); margin-bottom:2px;
-        }
-        .ind-state {
-          font-size: 0.7rem; font-weight:500; font-family:'Space Grotesk',sans-serif;
-          transition: color 0.3s; color: var(--dim);
-        }
-        .ind-card.active .ind-state { color: var(--ic) !important; }
-
-        /* ── Charts ────────────────────── */
-        .charts { display:flex; flex-direction:column; gap:10px; margin-bottom:12px; }
+        /* ── Charts ── */
+        .charts { display: flex; flex-direction: column; gap: 10px; }
         .chart-card {
-          background: var(--surface); border: 1px solid var(--border);
-          border-radius: var(--r); padding: 14px 16px;
+          background: var(--s1); border: 1px solid var(--border);
+          border-radius: var(--r); padding: 16px;
         }
-        .chart-top {
-          display:flex; align-items:center; justify-content:space-between;
-          margin-bottom: 10px;
+        .chart-hdr {
+          display: flex; align-items: baseline;
+          justify-content: space-between; margin-bottom: 12px;
         }
-        .chart-name {
-          font-size: 0.68rem; font-weight:600; text-transform:uppercase;
-          letter-spacing:0.09em; color: var(--dim);
-        }
-        .chart-thresh {
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 0.65rem; color: var(--dim);
-        }
+        .chart-title { font-size: 13px; font-weight: 500; color: var(--muted); }
+        .chart-range { font-size: 11px; font-family: 'DM Mono', monospace; color: var(--dim); }
 
-        /* ── Controls ──────────────────── */
+        /* ── Indicators ── */
+        .indicators {
+          display: grid; grid-template-columns: repeat(3, 1fr);
+          gap: 8px;
+        }
+        .ind {
+          background: var(--s1); border: 1px solid var(--border);
+          border-radius: var(--r-sm); padding: 12px 10px;
+          text-align: center; transition: border-color 0.25s;
+        }
+        .ind.on { border-color: var(--ic); box-shadow: 0 0 14px color-mix(in srgb, var(--ic) 18%, transparent); }
+        .ind-icon-wrap {
+          width: 34px; height: 34px; border-radius: 9px;
+          margin: 0 auto 7px; display: flex; align-items: center;
+          justify-content: center; font-size: 16px;
+          background: rgba(255,255,255,0.04);
+          transition: background 0.25s; position: relative;
+        }
+        .ind.on .ind-icon-wrap { background: color-mix(in srgb, var(--ic) 14%, transparent); }
+        .ind-glow {
+          position: absolute; inset: -2px; border-radius: 11px;
+          animation: iglow 2s ease-in-out infinite;
+        }
+        @keyframes iglow { 0%,100%{opacity:0.18} 50%{opacity:0.06} }
+        .ind-name { font-size: 10px; color: var(--dim); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 2px; }
+        .ind-state { font-size: 11px; font-weight: 500; color: var(--dim); transition: color 0.25s; }
+        .ind.on .ind-state { color: var(--ic); }
+
+        /* ── Controls ── */
         .controls-card {
-          background: var(--surface); border: 1px solid var(--border);
-          border-radius: var(--r); padding: 16px; margin-bottom: 12px;
+          background: var(--s1); border: 1px solid var(--border);
+          border-radius: var(--r); overflow: hidden;
         }
-        .controls-title {
-          font-size: 0.62rem; text-transform:uppercase; letter-spacing:0.1em;
-          color: var(--dim); margin-bottom: 12px;
+        .ctrl-hdr {
+          padding: 14px 18px 0; margin-bottom: 8px;
         }
-        .ctrl-list { display:flex; flex-direction:column; gap:8px; }
-        .ctrl-row {
-          display:flex; align-items:center; justify-content:space-between;
-          background: rgba(0,0,0,0.25); border: 1px solid var(--border);
-          border-radius: var(--r-sm); padding: 12px 14px;
-          transition: all 0.22s;
+        .ctrl-list { padding: 0 10px 12px; display: flex; flex-direction: column; gap: 2px; }
+        .ctrl-item {
+          display: flex; align-items: center; justify-content: space-between;
+          padding: 13px 8px; border-radius: var(--r-sm);
+          cursor: pointer; transition: background 0.15s;
+          user-select: none;
         }
-        .ctrl-row.active-ctrl { border-color: var(--ac) !important; background: color-mix(in srgb, var(--ac) 8%, rgba(0,0,0,0.3)) !important; }
-        .ctrl-row.dim { opacity:0.32; }
-        .ctrl-label { font-family:'Space Grotesk',sans-serif; font-size:0.88rem; font-weight:500; }
-        .ctrl-row.active-ctrl .ctrl-label { color: var(--ac); }
-        .track {
-          width:44px; height:26px; border-radius:13px;
-          background: rgba(255,255,255,0.08);
-          position:relative; transition: background 0.22s; flex-shrink:0;
+        .ctrl-item:active:not(.ctrl-disabled) { background: rgba(255,255,255,0.03); }
+        .ctrl-item.ctrl-disabled { cursor: default; }
+        .ctrl-left { display: flex; align-items: center; gap: 10px; }
+        .ctrl-dot {
+          width: 8px; height: 8px; border-radius: 50%;
+          transition: background 0.22s, box-shadow 0.22s;
         }
-        .ctrl-row.active-ctrl .track { background: var(--ac) !important; }
-        .thumb {
-          position:absolute; top:3px; left:3px; width:20px; height:20px;
-          border-radius:10px; background:white;
-          box-shadow: 0 1px 4px rgba(0,0,0,0.4);
-          transition: transform 0.22s;
-        }
-        .ctrl-row.active-ctrl .thumb { transform: translateX(18px); }
-        .ctrl-hint { font-size:0.68rem; color:var(--dim); text-align:center; margin-top:10px; }
+        .ctrl-item-name { font-size: 15px; font-weight: 400; letter-spacing: -0.01em; }
+        .ctrl-item-name.on { font-weight: 500; }
+        .ctrl-item.ctrl-disabled .ctrl-item-name { color: var(--dim); }
+        .ctrl-hint { padding: 0 18px 14px; font-size: 12px; color: var(--dim); }
 
-        /* ── Footer ────────────────────── */
+        /* ── Footer ── */
         .footer {
-          text-align:center; font-size:0.65rem; color:var(--dim);
-          font-family:'JetBrains Mono',monospace; padding:4px 0;
+          padding: 8px 0 2px; text-align: center;
+          font-size: 11px; color: var(--dim);
+          font-family: 'DM Mono', monospace;
         }
 
-        /* ── Scrollbar ─────────────────── */
-        ::-webkit-scrollbar { width:4px; }
-        ::-webkit-scrollbar-track { background:transparent; }
-        ::-webkit-scrollbar-thumb { background:rgba(74,222,128,0.2); border-radius:4px; }
+        /* ── Divider ── */
+        .divider { height: 1px; background: var(--border); margin: 0 -18px; }
+
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
 
         @supports (padding: max(0px)) {
-          .app { padding-bottom: max(48px, env(safe-area-inset-bottom)); }
+          .wrap { padding-bottom: max(56px, env(safe-area-inset-bottom, 20px)); }
         }
       `}</style>
 
-      <div className="app">
+      <div className="wrap">
 
-        {/* ── Header ── */}
-        <div className="header">
-          <div className="header-brand">
-            <div className="brand-leaf">🌱</div>
+        {/* Header */}
+        <header className="hdr">
+          <div className="hdr-brand">
+            <div className="brand-mark">🌱</div>
             <div>
-              <div className="brand-name">{t.appName}</div>
-              <div className="brand-sub">{t.appSub}</div>
+              <div className="brand-name">AI Planter</div>
+              <div className="brand-tag">{t.sub}</div>
             </div>
           </div>
-          <div className="header-right">
-            <div className="pill">
-              <div className="pip" style={{ background: connColor, boxShadow: `0 0 6px ${connColor}` }} />
+          <div className="hdr-right">
+            <div className="status-pill">
+              <div className="pip" style={{ background: connColor, boxShadow: espOk ? `0 0 5px ${connColor}` : "none" }}/>
               {connLabel}
             </div>
-            <button className="lang-btn" onClick={() => setLang(l => l === "en" ? "ms" : "en")}>
-              {lang === "en" ? "🇲🇾 BM" : "🇬🇧 EN"}
+            <button className="lang-pill" onClick={() => setLang(l => l === "en" ? "ms" : "en")}>
+              {lang === "en" ? "BM" : "EN"}
             </button>
           </div>
-        </div>
+        </header>
 
-        {/* ── AI Command Center ── */}
-        <div className="ai-hero">
-          <div className="ai-top-row">
-            <div className="ai-badge">✦ Groq AI</div>
-            {thresh.plant && <div className="ai-active-tag">{thresh.plant}</div>}
-          </div>
-          <div className="ai-headline">{t.aiHero}</div>
-          <div className="ai-subline">{t.aiSub}</div>
-          <div className="ai-input-row">
-            <input
-              className="ai-input"
-              value={plant}
-              onChange={e => setPlant(e.target.value)}
-              onKeyDown={e => e.key === "Enter" && askAI()}
-              placeholder={t.aiPlaceholder}
-            />
-            <button className="ai-btn" onClick={askAI} disabled={aiLoading}>
-              {aiLoading ? t.aiLoading : t.aiBtn}
-            </button>
-          </div>
-          {aiLoading && <div className="ai-progress"><div className="ai-progress-fill"/></div>}
-          {aiError && <div className="ai-error">⚠ {aiError}</div>}
-          {thresh.advice ? (
-            <div className="ai-result">
-              <div className="ai-thresh-row">
-                <div className="ai-thresh-card">
-                  <span className="ai-thresh-val">{thresh.temp_low}–{thresh.temp_high}°C</span>
-                  <span className="ai-thresh-key">{t.tempRange}</span>
-                </div>
-                <div className="ai-thresh-card">
-                  <span className="ai-thresh-val">{thresh.humid_low}–{thresh.humid_high}%</span>
-                  <span className="ai-thresh-key">{t.humidRange}</span>
-                </div>
-              </div>
-              <div className="ai-advice-box">
-                <span className="ai-advice-label">{t.advice}</span>
-                {thresh.advice}
-              </div>
-            </div>
-          ) : !aiLoading && (
-            <p className="ai-empty">{t.aiEmpty}</p>
-          )}
-        </div>
-
-        {/* ── Health + Readings ── */}
-        <div className="health-readings">
-          {/* Health ring */}
-          <div className="health-card">
-            <div className="health-ring-wrap">
-              <svg viewBox="0 0 120 120">
-                <circle cx="60" cy="60" r={r} fill="none"
-                  stroke="rgba(255,255,255,0.05)" strokeWidth="9"
-                  strokeDasharray={`${circ*0.75} ${circ}`}
-                  strokeDashoffset={circ*0.125} strokeLinecap="round" />
-                <circle cx="60" cy="60" r={r} fill="none"
-                  stroke={health.color} strokeWidth="9"
-                  strokeDasharray={`${arc} ${circ}`}
-                  strokeDashoffset={circ*0.125} strokeLinecap="round"
-                  style={{ filter:`drop-shadow(0 0 6px ${health.color})`, transition:"stroke-dasharray 0.8s ease, stroke 0.4s" }} />
-              </svg>
-              <div className="health-score-text">
-                <span className="health-num" style={{color:health.color}}>{score}</span>
-                <span className="health-of">/ 100</span>
-              </div>
-            </div>
-            <div className="health-label-text" style={{color:health.color}}>{t[health.key]}</div>
-            <div className="health-plant">{thresh.plant || t.noPlant}</div>
-          </div>
-
-          {/* Live readings */}
-          <div className="readings">
+        {/* Sensor hero */}
+        <div className="section">
+          <div className="sensor-hero">
             {[
-              { key:"temperature", val:latest.temperature, unit:"°C", color:"#f87171", low:thresh.temp_low, high:thresh.temp_high },
-              { key:"humidity",    val:latest.humidity,    unit:"%",  color:"#60a5fa", low:thresh.humid_low, high:thresh.humid_high },
-            ].map(({ key, val, unit, color, low, high }) => {
+              { key:"temperature", val:latest.temperature, unit:"°C", color:"#F87171", low:thresh.temp_low, high:thresh.temp_high },
+              { key:"humidity",    val:latest.humidity,    unit:"%",  color:"#60A5FA", low:thresh.humid_low, high:thresh.humid_high },
+            ].map(({ key, val, unit, color, low, high }, i) => {
               const ok = val >= low && val <= high;
-              const sc = ok ? "#4ade80" : val < low ? "#60a5fa" : "#f87171";
+              const sc = ok ? "#2ECC71" : val < low ? "#60A5FA" : "#F87171";
               const st = ok ? t.optimal : val < low ? t.low : t.high;
-              const span = (high+5)-(low-5);
-              const pct = Math.min(100, Math.max(0, ((val-(low-5))/span)*100));
-              const zl  = ((low-(low-5))/span)*100;
-              const zw  = ((high-low)/span)*100;
               return (
-                <div className="reading-card" key={key}>
-                  <div className="reading-label">{t[key]}</div>
-                  <div className="reading-value-row">
-                    <span className="reading-val" style={{color}}>{val.toFixed(1)}</span>
-                    <span className="reading-unit">{unit}</span>
+                <div className="sensor-cell" key={key}>
+                  {i === 0 && <div className="sensor-divider"/>}
+                  <div className="label sensor-label">{t[key]}</div>
+                  <div>
+                    <span className="sensor-big" style={{ color }}>{val.toFixed(1)}</span>
+                    <span className="sensor-unit">{unit}</span>
                   </div>
-                  <div className="reading-status">
-                    <div className="status-pip" style={{background:sc, boxShadow:`0 0 5px ${sc}`}}/>
-                    <span style={{color:sc}}>{st}</span>
-                    <span className="reading-range">{low}–{high}{unit}</span>
+                  <div className="sensor-status">
+                    <div className="pip" style={{ background: sc }}/>
+                    <span style={{ color: sc, fontSize: 12 }}>{st}</span>
                   </div>
-                  <div className="bar-bg">
-                    <div className="bar-zone" style={{left:`${zl}%`, width:`${zw}%`}}/>
-                    <div className="bar-fill" style={{width:`${pct}%`, background:sc}}/>
-                  </div>
+                  <ThreshBar value={val} low={low} high={high} color={sc}/>
+                  <div className="sensor-range mono">{low}–{high}{unit}</div>
                 </div>
               );
             })}
           </div>
         </div>
 
-        {/* ── Status strip ── */}
-        <div className="status-strip">
-          <div className="rgb-section">
-            <div className="rgb-orb-wrap">
-              <div className="rgb-orb" style={{ background:rgb.color, boxShadow:`0 0 18px ${rgb.color}90, 0 0 6px ${rgb.color}` }}>
-                <div className="rgb-orb-inner"/>
+        {/* AI Panel */}
+        <div className="section">
+          <div className="ai-card">
+            <div className="ai-card-top">
+              <div className="ai-top-row">
+                <div className="ai-title-group">
+                  <span className="ai-title">{t.aiTitle}</span>
+                  <span className="ai-by">{t.aiBy}</span>
+                </div>
+                {thresh.plant && <div className="ai-active">{thresh.plant}</div>}
               </div>
+              <div className="ai-input-row">
+                <input className="ai-input" value={plant}
+                  onChange={e => setPlant(e.target.value)}
+                  onKeyDown={e => e.key === "Enter" && askAI()}
+                  placeholder={t.aiPlaceholder}/>
+                <button className="ai-btn" onClick={askAI} disabled={aiLoading}>
+                  {aiLoading ? t.aiLoading : t.aiBtn}
+                </button>
+              </div>
+              {aiLoading && <div className="ai-prog-bar"><div className="ai-prog-fill"/></div>}
+              {aiError && <div className="ai-err">⚠ {aiError}</div>}
             </div>
-            <div className="rgb-info">
-              <div className="rgb-title">{t.rgbStatus}</div>
-              <div className="rgb-state" style={{color:rgb.color}}>{t[rgb.key]}</div>
+            <div className="ai-body">
+              {thresh.advice ? (
+                <>
+                  <div className="ai-thresh-row">
+                    <div className="ai-thresh-item">
+                      <span className="ai-thresh-val">{thresh.temp_low}–{thresh.temp_high}°C</span>
+                      <span className="ai-thresh-key label">{t.temp}</span>
+                    </div>
+                    <div className="ai-thresh-item">
+                      <span className="ai-thresh-val">{thresh.humid_low}–{thresh.humid_high}%</span>
+                      <span className="ai-thresh-key label">{t.humid}</span>
+                    </div>
+                  </div>
+                  <div className="ai-advice-block">
+                    <div className="label ai-advice-title">{t.aiAdvice}</div>
+                    <div className="ai-advice-text">{thresh.advice}</div>
+                  </div>
+                </>
+              ) : !aiLoading && <p className="ai-empty">{t.aiEmpty}</p>}
             </div>
           </div>
-          {notifSupported ? (
-            <button className={`notif-btn ${notifGranted ? "on" : ""}`}
-              onClick={async () => { const ok = await requestNotif(); setNotifGranted(ok); }}>
-              {notifGranted ? t.alertOn : t.alertOff}
-            </button>
-          ) : (
-            <div className="ios-hint">🔔 {t.alertIOS}</div>
-          )}
         </div>
 
-        {/* ── Indicator row ── */}
-        <div className="indicators">
-          {[
-            { active:fanOn,    color:"#60a5fa", icon:"💨", key:"fan",  onSub:t.running, offSub:t.idle },
-            { active:pumpOn,   color:"#4ade80", icon:"💧", key:"pump", onSub:t.misting, offSub:t.idle },
-            { active:autoMode, color:"#fbbf24", icon:"⚡", key:"auto", onSub:t.auto,    offSub:t.manual },
-          ].map(({ active, color, icon, key, onSub, offSub }) => (
-            <div key={key}
-              className={`ind-card ${active?"active":""}`}
-              style={{"--ic":color}}>
-              <div className="ind-dot-wrap">
-                {active && <div className="ind-pulse" style={{background:color}}/>}
-                <span className="ind-icon">{icon}</span>
+        {/* Status row: Health + RGB */}
+        <div className="section">
+          <div className="status-row">
+            {/* Health */}
+            <div className="health-card">
+              <div className="health-ring">
+                <svg viewBox="0 0 100 100">
+                  <circle cx="50" cy="50" r={R} fill="none"
+                    stroke="#1C1E23" strokeWidth="8"
+                    strokeDasharray={`${C*0.75} ${C}`}
+                    strokeDashoffset={C*0.125} strokeLinecap="round"/>
+                  <circle cx="50" cy="50" r={R} fill="none"
+                    stroke={health.color} strokeWidth="8"
+                    strokeDasharray={`${arc} ${C}`}
+                    strokeDashoffset={C*0.125} strokeLinecap="round"
+                    style={{ transition:"stroke-dasharray 0.8s ease, stroke 0.4s" }}/>
+                </svg>
+                <div className="health-overlay">
+                  <div className="health-num mono" style={{color:health.color}}>{score}</div>
+                  <div className="health-denom label">/ 100</div>
+                </div>
               </div>
-              <div className="ind-name">{t[key]}</div>
-              <div className="ind-state">{active ? onSub : offSub}</div>
+              <div className="health-info">
+                <div className="label" style={{marginBottom:4}}>{t.health}</div>
+                <div className="health-status" style={{color:health.color}}>{health.label}</div>
+                <div className="health-plant">{thresh.plant || "—"}</div>
+              </div>
             </div>
-          ))}
+
+            {/* RGB */}
+            <div className="rgb-card">
+              <div>
+                <div className="label" style={{marginBottom:10}}>{t.rgbLabel}</div>
+                <div className="rgb-indicator">
+                  <div className="rgb-dot" style={{
+                    background: rgb.color,
+                    boxShadow: rgb.color !== "#374151" ? `0 0 14px ${rgb.color}80, 0 0 4px ${rgb.color}` : "none"
+                  }}>
+                    <div className="rgb-dot-inner"/>
+                  </div>
+                  <div>
+                    <div className="rgb-name" style={{color:rgb.color}}>{rgb.label}</div>
+                  </div>
+                </div>
+              </div>
+              {notifSupported ? (
+                <button className={`notif-btn ${notifGranted?"on":""}`}
+                  onClick={async () => { const ok = await requestNotif(); setNotifGranted(ok); }}>
+                  {notifGranted ? `🔔 ${t.alertOn}` : `🔕 ${t.alertOff}`}
+                </button>
+              ) : <div className="ios-hint">{t.alertIOS}</div>}
+            </div>
+          </div>
         </div>
 
-        {/* ── Charts ── */}
-        <div className="charts">
-          {[
-            { dKey:"temperature", color:"#f87171", name:t.temp, unit:"°C", rLow:thresh.temp_low, rHigh:thresh.temp_high },
-            { dKey:"humidity",    color:"#60a5fa", name:t.humid, unit:"%",  rLow:thresh.humid_low, rHigh:thresh.humid_high },
-          ].map(({ dKey, color, name, unit, rLow, rHigh }) => (
-            <div className="chart-card" key={dKey}>
-              <div className="chart-top">
-                <span className="chart-name">{name}</span>
-                <span className="chart-thresh">{rLow}–{rHigh} {unit}</span>
+        {/* Indicators */}
+        <div className="section">
+          <div className="indicators">
+            {[
+              {on:fanOn,    color:"#3B82F6", icon:"💨", name:t.fan,  stOn:t.running, stOff:t.idle},
+              {on:pumpOn,   color:"#2ECC71", icon:"💧", name:t.pump, stOn:t.misting, stOff:t.idle},
+              {on:autoMode, color:"#F0B429", icon:"⚡", name:t.auto, stOn:t.auto,    stOff:t.manual},
+            ].map(({on, color, icon, name, stOn, stOff}) => (
+              <div key={name} className={`ind ${on?"on":""}`} style={{"--ic":color}}>
+                <div className="ind-icon-wrap">
+                  {on && <div className="ind-glow" style={{background:color}}/>}
+                  <span>{icon}</span>
+                </div>
+                <div className="ind-name">{name}</div>
+                <div className="ind-state">{on ? stOn : stOff}</div>
               </div>
-              <ResponsiveContainer width="100%" height={120}>
-                <LineChart data={history.slice(-24)} margin={{top:4,right:4,left:-26,bottom:0}}>
-                  <XAxis dataKey="ts" tick={{fill:"#374151",fontSize:9}} interval="preserveStartEnd"/>
-                  <YAxis tick={{fill:"#374151",fontSize:9}}/>
+            ))}
+          </div>
+        </div>
+
+        {/* Charts */}
+        <div className="section charts">
+          {[
+            {dKey:"temperature", color:"#F87171", name:t.temp, unit:"°C", lo:thresh.temp_low, hi:thresh.temp_high},
+            {dKey:"humidity",    color:"#60A5FA", name:t.humid, unit:"%",  lo:thresh.humid_low, hi:thresh.humid_high},
+          ].map(({dKey, color, name, unit, lo, hi}) => (
+            <div className="chart-card" key={dKey}>
+              <div className="chart-hdr">
+                <span className="chart-title">{name}</span>
+                <span className="chart-range">{lo}–{hi} {unit}</span>
+              </div>
+              <ResponsiveContainer width="100%" height={110}>
+                <LineChart data={history.slice(-24)} margin={{top:2,right:2,left:-28,bottom:0}}>
+                  <XAxis dataKey="ts" tick={{fill:"#374151",fontSize:9}} interval="preserveStartEnd" axisLine={false} tickLine={false}/>
+                  <YAxis tick={{fill:"#374151",fontSize:9}} axisLine={false} tickLine={false}/>
                   <Tooltip
-                    contentStyle={{background:"rgba(10,26,15,0.95)",border:"1px solid rgba(74,222,128,0.2)",borderRadius:10,fontSize:12}}
-                    labelStyle={{color:"#6ee7b7"}} itemStyle={{color}}/>
-                  <ReferenceLine y={rHigh} stroke={color} strokeDasharray="3 3" strokeOpacity={0.4}/>
-                  <ReferenceLine y={rLow}  stroke={color} strokeDasharray="3 3" strokeOpacity={0.4}/>
-                  <Line type="monotone" dataKey={dKey} stroke={color} strokeWidth={2}
+                    contentStyle={{background:"#16181C",border:"1px solid #2A2D33",borderRadius:8,fontSize:12}}
+                    labelStyle={{color:"#64748B"}} itemStyle={{color}}
+                    cursor={{stroke:"#2A2D33",strokeWidth:1}}/>
+                  <ReferenceLine y={hi} stroke={color} strokeDasharray="4 3" strokeOpacity={0.35} strokeWidth={1}/>
+                  <ReferenceLine y={lo} stroke={color} strokeDasharray="4 3" strokeOpacity={0.35} strokeWidth={1}/>
+                  <Line type="monotone" dataKey={dKey} stroke={color} strokeWidth={1.75}
                     dot={false} activeDot={{r:4,fill:color,strokeWidth:0}}/>
                 </LineChart>
               </ResponsiveContainer>
@@ -840,27 +821,37 @@ export default function App() {
           ))}
         </div>
 
-        {/* ── Controls ── */}
-        <div className="controls-card">
-          <div className="controls-title">{t.controls}</div>
-          <div className="ctrl-list">
-            {[
-              { active:autoMode, toggle:toggleAuto, label:t.autoMode, color:"#fbbf24", disabled:false },
-              { active:fanOn,    toggle:toggleFan,  label:t.fan,      color:"#60a5fa", disabled:autoMode },
-              { active:pumpOn,   toggle:togglePump, label:t.pump,     color:"#4ade80", disabled:autoMode },
-            ].map(({ active, toggle, label, color, disabled }) => (
-              <div key={label}
-                className={`ctrl-row ${active?"active-ctrl":""} ${disabled?"dim":""}`}
-                style={{"--ac":color}}
-                onClick={disabled ? undefined : toggle}>
-                <span className="ctrl-label">{label}</span>
-                <div className="track">
-                  <div className="thumb"/>
+        {/* Controls */}
+        <div className="section">
+          <div className="controls-card">
+            <div className="ctrl-hdr">
+              <div className="label">{t.controls}</div>
+            </div>
+            <div className="ctrl-list">
+              {[
+                {on:autoMode, toggle:toggleAuto, name:t.autoMode, color:"#F0B429", disabled:false},
+                {on:fanOn,    toggle:toggleFan,  name:t.fanCtrl,  color:"#3B82F6", disabled:autoMode},
+                {on:pumpOn,   toggle:togglePump, name:t.pumpCtrl, color:"#2ECC71", disabled:autoMode},
+              ].map(({on, toggle, name, color, disabled}) => (
+                <div key={name}
+                  className={`ctrl-item ${disabled?"ctrl-disabled":""}`}
+                  onClick={disabled ? undefined : toggle}>
+                  <div className="ctrl-left">
+                    <div className="ctrl-dot" style={{
+                      background: on && !disabled ? color : "#2A2D33",
+                      boxShadow: on && !disabled ? `0 0 6px ${color}` : "none"
+                    }}/>
+                    <span className={`ctrl-item-name ${on&&!disabled?"on":""}`}
+                      style={{color: on&&!disabled ? color : disabled ? "var(--dim)" : "var(--text)"}}>
+                      {name}
+                    </span>
+                  </div>
+                  <Toggle on={on && !disabled} onChange={toggle} disabled={disabled}/>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
+            {autoMode && <div className="ctrl-hint">{t.autoHint}</div>}
           </div>
-          {autoMode && <div className="ctrl-hint">{t.manualHint}</div>}
         </div>
 
         <div className="footer">{t.updated} {latest.ts || "--"}</div>
