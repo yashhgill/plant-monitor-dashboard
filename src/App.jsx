@@ -206,26 +206,28 @@ export default function App() {
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
         :root {
-          --soil:      #1C1208;
-          --bark:      #2D1E0F;
-          --heartwood: #3D2B14;
-          --border:    #4A3520;
-          --sage:      #8FAF6A;
-          --terra:     #C4956A;
-          --grass:     #D4C9A8;
-          --mulch:     #7A6A4E;
-          --moss:      #5A7A3A;
-          --dew:       #6AB8A0;
-          --sky:       #7AAED4;
-          --clay:      #C4614A;
+          /* Lighter earthy palette */
+          --soil:      #EAE4D6;
+          --bark:      #EDE8DC;
+          --heartwood: #E2DACC;
+          --border:    #C8BC9E;
+          --sage:      #5A8040;
+          --terra:     #B06A30;
+          --grass:     #2E2416;
+          --mulch:     #7A6A50;
+          --moss:      #4A6A2A;
+          --dew:       #3A8870;
+          --sky:       #4A7EAA;
+          --clay:      #A03820;
 
-          --depth-1: 0 2px 8px rgba(0,0,0,0.4), 0 1px 3px rgba(0,0,0,0.3);
-          --depth-2: 0 8px 32px rgba(0,0,0,0.5), 0 2px 8px rgba(0,0,0,0.3), inset 0 1px 0 rgba(212,201,168,0.04);
-          --depth-3: 0 16px 48px rgba(0,0,0,0.6), 0 4px 16px rgba(0,0,0,0.4), inset 0 1px 0 rgba(212,201,168,0.06);
+          /* Neomorphic shadows — warm light source top-left */
+          --nm-out:  6px 6px 14px rgba(155,138,108,0.55), -4px -4px 10px rgba(255,253,245,0.9);
+          --nm-in:   inset 4px 4px 9px rgba(155,138,108,0.45), inset -3px -3px 7px rgba(255,253,245,0.85);
+          --nm-flat: 3px 3px 7px rgba(155,138,108,0.4), -2px -2px 5px rgba(255,253,245,0.8);
 
-          --r:    16px;
-          --r-sm: 10px;
-          --r-xs: 7px;
+          --r:    18px;
+          --r-sm: 12px;
+          --r-xs: 8px;
         }
 
         html { -webkit-text-size-adjust: 100%; }
@@ -233,9 +235,9 @@ export default function App() {
         body {
           background: var(--soil);
           background-image:
-            radial-gradient(ellipse 70% 50% at 10% 0%,  rgba(143,175,106,0.06) 0%, transparent 55%),
-            radial-gradient(ellipse 50% 60% at 90% 100%, rgba(196,149,106,0.05) 0%, transparent 55%),
-            url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+            radial-gradient(ellipse 80% 55% at 10% 0%,  rgba(120,170,80,0.10) 0%, transparent 55%),
+            radial-gradient(ellipse 55% 65% at 90% 100%, rgba(196,149,106,0.09) 0%, transparent 55%),
+            radial-gradient(ellipse 100% 40% at 50% 50%, rgba(255,253,245,0.25) 0%, transparent 70%);
           background-attachment: fixed;
           color: var(--grass);
           font-family: 'DM Sans', -apple-system, sans-serif;
@@ -250,27 +252,27 @@ export default function App() {
           padding-top: max(18px, env(safe-area-inset-top, 18px));
         }
 
-        /* ── Spatial card ── */
+        /* ── Neomorphic card ── */
         .card {
           background: var(--bark);
-          border: 1px solid var(--border);
+          border: none;
           border-radius: var(--r);
-          box-shadow: var(--depth-2);
+          box-shadow: var(--nm-out);
           position: relative;
           overflow: hidden;
         }
         .card::before {
           content: "";
           position: absolute; inset: 0;
-          background: linear-gradient(135deg, rgba(212,201,168,0.03) 0%, transparent 60%);
+          background: linear-gradient(145deg, rgba(255,253,245,0.4) 0%, transparent 55%);
           pointer-events: none;
           border-radius: inherit;
         }
         .card-inner {
           background: var(--heartwood);
-          border: 1px solid var(--border);
+          border: none;
           border-radius: var(--r-sm);
-          box-shadow: var(--depth-1);
+          box-shadow: var(--nm-in);
           position: relative;
         }
 
@@ -304,20 +306,20 @@ export default function App() {
 
         .status-pill {
           display: flex; align-items: center; gap: 5px;
-          background: var(--bark); border: 1px solid var(--border);
+          background: var(--bark); border: none;
           border-radius: 20px; padding: 5px 11px;
           font-size: 10px; font-weight: 500; color: var(--mulch);
-          box-shadow: var(--depth-1);
+          box-shadow: var(--nm-flat);
         }
         .pip { width: 6px; height: 6px; border-radius: 50%; }
         .pip.live { animation: breathe 3s ease-in-out infinite; }
         @keyframes breathe { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.6;transform:scale(0.85)} }
 
         .lang-pill {
-          background: var(--bark); border: 1px solid var(--border);
+          background: var(--bark); border: none;
           border-radius: 20px; padding: 5px 11px;
           font-size: 10px; font-weight: 600; color: var(--mulch);
-          cursor: pointer; box-shadow: var(--depth-1); transition: all 0.15s;
+          cursor: pointer; box-shadow: var(--nm-flat); transition: all 0.15s;
         }
         .lang-pill:active { transform: scale(0.93); }
 
@@ -338,25 +340,27 @@ export default function App() {
         .ai-row { display: flex; gap: 8px; margin-bottom: 12px; }
         .ai-input {
           flex: 1; background: var(--heartwood);
-          border: 1px solid var(--border); border-radius: var(--r-sm);
+          border: none; border-radius: var(--r-sm);
           padding: 11px 13px; color: var(--grass);
           font-family: 'DM Sans', sans-serif; font-size: 14px;
-          outline: none; transition: border-color 0.2s, box-shadow 0.2s;
-          -webkit-appearance: none; box-shadow: var(--depth-1);
+          outline: none; transition: box-shadow 0.2s;
+          -webkit-appearance: none; box-shadow: var(--nm-in);
         }
         .ai-input::placeholder { color: var(--mulch); }
         .ai-input:focus {
-          border-color: rgba(196,149,106,0.5);
-          box-shadow: var(--depth-1), 0 0 0 3px rgba(196,149,106,0.1);
+          box-shadow: var(--nm-in), 0 0 0 2px rgba(176,106,48,0.2);
         }
         .ai-btn {
-          background: linear-gradient(135deg, #5A3A1A, #7A5530);
-          color: var(--terra); border: 1px solid rgba(196,149,106,0.3);
+          background: var(--bark);
+          color: var(--terra); border: none;
           border-radius: var(--r-sm); padding: 11px 16px;
           font-family: 'DM Sans', sans-serif; font-size: 13px;
           font-weight: 600; cursor: pointer; white-space: nowrap;
-          transition: opacity 0.18s, transform 0.12s;
-          box-shadow: var(--depth-1), 0 0 16px rgba(196,149,106,0.12);
+          transition: box-shadow 0.18s, transform 0.12s;
+          box-shadow: var(--nm-out);
+        }
+        .ai-btn:hover:not(:disabled) {
+          box-shadow: 4px 4px 10px rgba(155,138,108,0.5), -2px -2px 7px rgba(255,253,245,0.85);
         }
         .ai-btn:active { transform: scale(0.96); }
         .ai-btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
@@ -381,8 +385,8 @@ export default function App() {
         .ai-thresh-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
         .ai-thresh-item {
           padding: 12px 14px;
-          background: var(--heartwood); border: 1px solid var(--border);
-          border-radius: var(--r-sm); box-shadow: var(--depth-1);
+          background: var(--heartwood); border: none;
+          border-radius: var(--r-sm); box-shadow: var(--nm-in);
         }
         .ai-thresh-val {
           font-family: 'Playfair Display', serif;
@@ -391,8 +395,8 @@ export default function App() {
         }
         .ai-advice-box {
           padding: 13px 14px;
-          background: var(--heartwood); border: 1px solid var(--border);
-          border-radius: var(--r-sm); box-shadow: var(--depth-1);
+          background: var(--heartwood); border: none;
+          border-radius: var(--r-sm); box-shadow: var(--nm-in);
         }
         .ai-advice-text {
           font-size: 12.5px; line-height: 1.68; color: var(--mulch);
@@ -403,14 +407,15 @@ export default function App() {
         /* ── Sensor hero ── */
         .sensor-hero {
           display: grid; grid-template-columns: 1fr 1fr;
-          gap: 1px; background: var(--border);
+          gap: 2px; background: var(--border);
           border-radius: var(--r); overflow: hidden;
-          box-shadow: var(--depth-2);
+          box-shadow: var(--nm-out);
         }
         .sensor-cell {
           background: var(--bark); padding: 20px 18px 16px;
           position: relative;
         }
+        /* Sensor hero itself gets neomorphic treatment */
         .sensor-cell::after {
           content: "";
           position: absolute; inset: 0;
@@ -488,14 +493,14 @@ export default function App() {
         }
         .rgb-state { font-size: 13px; font-weight: 500; }
         .notif-btn {
-          width: 100%; background: var(--heartwood);
-          border: 1px solid var(--border); border-radius: var(--r-xs);
+          width: 100%; background: var(--bark);
+          border: none; border-radius: var(--r-xs);
           padding: 8px; font-size: 11px; font-weight: 500;
           color: var(--mulch); cursor: pointer; text-align: center;
           transition: all 0.18s; font-family: 'DM Sans', sans-serif;
-          box-shadow: var(--depth-1);
+          box-shadow: var(--nm-flat);
         }
-        .notif-btn.on { color: var(--sage); border-color: rgba(143,175,106,0.35); }
+        .notif-btn.on { color: var(--sage); }
         .notif-btn:active { transform: scale(0.97); }
         .ios-hint { font-size: 10px; color: var(--mulch); text-align: center; line-height: 1.4; }
 
@@ -503,11 +508,10 @@ export default function App() {
         .inds { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; }
         .ind {
           padding: 12px 8px 10px; text-align: center;
-          transition: border-color 0.3s, box-shadow 0.3s;
+          transition: box-shadow 0.3s;
         }
         .ind.on {
-          border-color: var(--ic) !important;
-          box-shadow: var(--depth-1), 0 0 20px color-mix(in srgb, var(--ic) 20%, transparent) !important;
+          box-shadow: var(--nm-in), 0 0 18px color-mix(in srgb, var(--ic) 22%, transparent) !important;
         }
         .ind-orb-wrap {
           width: 38px; height: 38px; border-radius: 50%;
@@ -534,6 +538,7 @@ export default function App() {
         /* ── Charts ── */
         .charts { display: flex; flex-direction: column; gap: 10px; }
         .chart-card { padding: 16px 14px; }
+        /* chart bg uses nm-out already via .card */
         .chart-hdr { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 12px; }
         .chart-name { font-size: 12px; font-weight: 500; color: var(--mulch); }
         .chart-range { font-size: 10px; font-family: 'DM Mono', monospace; color: var(--border); }
@@ -544,13 +549,16 @@ export default function App() {
         .ctrl-row {
           display: flex; align-items: center; justify-content: space-between;
           padding: 12px 14px; border-radius: var(--r-sm);
-          background: var(--heartwood); border: 1px solid var(--border);
-          cursor: pointer; transition: all 0.2s; box-shadow: var(--depth-1);
+          background: var(--bark); border: none;
+          cursor: pointer; transition: all 0.2s; box-shadow: var(--nm-flat);
           user-select: none;
+        }
+        .ctrl-row:hover:not(.ctrl-dim) {
+          box-shadow: 4px 4px 10px rgba(155,138,108,0.5), -2px -2px 7px rgba(255,253,245,0.85);
         }
         .ctrl-row:active:not(.ctrl-dim) { transform: scale(0.985); }
         .ctrl-row.ctrl-dim { cursor: default; opacity: 0.38; }
-        .ctrl-row.ctrl-on { border-color: var(--ac) !important; background: color-mix(in srgb, var(--ac) 8%, var(--heartwood)) !important; }
+        .ctrl-row.ctrl-on { border: none !important; background: color-mix(in srgb, var(--ac) 10%, var(--bark)) !important; box-shadow: var(--nm-in) !important; }
         .ctrl-left { display: flex; align-items: center; gap: 10px; }
         .ctrl-pip {
           width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
@@ -561,17 +569,18 @@ export default function App() {
         .ctrl-row.ctrl-on .ctrl-name { color: var(--ac); font-weight: 500; }
         .ctrl-row.ctrl-dim .ctrl-name { color: var(--mulch); }
 
-        /* iOS-style toggle */
+        /* Neomorphic toggle */
         .toggle {
           width: 44px; height: 26px; border-radius: 13px;
-          background: var(--border); flex-shrink: 0;
-          position: relative; transition: background 0.22s;
+          background: var(--heartwood); flex-shrink: 0;
+          position: relative; transition: background 0.22s, box-shadow 0.22s;
+          box-shadow: var(--nm-in);
         }
-        .toggle.on { background: var(--ac); box-shadow: 0 0 10px color-mix(in srgb, var(--ac) 40%, transparent); }
+        .toggle.on { background: color-mix(in srgb, var(--ac) 25%, var(--bark)); box-shadow: var(--nm-in), 0 0 8px color-mix(in srgb, var(--ac) 35%, transparent); }
         .toggle-thumb {
           position: absolute; top: 3px; left: 3px;
           width: 20px; height: 20px; border-radius: 10px;
-          background: var(--grass); box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+          background: var(--bark); box-shadow: 2px 2px 5px rgba(155,138,108,0.5), -1px -1px 3px rgba(255,253,245,0.8);
           transition: transform 0.22s;
         }
         .toggle.on .toggle-thumb { transform: translateX(18px); }
@@ -777,12 +786,12 @@ export default function App() {
               </div>
               <ResponsiveContainer width="100%" height={100}>
                 <LineChart data={history.slice(-24)} margin={{top:2,right:2,left:-30,bottom:0}}>
-                  <XAxis dataKey="ts" tick={{fill:"#4A3520",fontSize:8}} interval="preserveStartEnd" axisLine={false} tickLine={false}/>
-                  <YAxis tick={{fill:"#4A3520",fontSize:8}} axisLine={false} tickLine={false}/>
+                  <XAxis dataKey="ts" tick={{fill:"#B0A080",fontSize:8}} interval="preserveStartEnd" axisLine={false} tickLine={false}/>
+                  <YAxis tick={{fill:"#B0A080",fontSize:8}} axisLine={false} tickLine={false}/>
                   <Tooltip
                     contentStyle={{background:"#2D1E0F",border:"1px solid #4A3520",borderRadius:8,fontSize:11,boxShadow:"0 8px 24px rgba(0,0,0,0.4)"}}
                     labelStyle={{color:"#7A6A4E"}} itemStyle={{color}}
-                    cursor={{stroke:"#4A3520",strokeWidth:1}}/>
+                    cursor={{stroke:"#B0A080",strokeWidth:1}}/>
                   <ReferenceLine y={hi} stroke={color} strokeDasharray="3 3" strokeOpacity={0.3} strokeWidth={1}/>
                   <ReferenceLine y={lo} stroke={color} strokeDasharray="3 3" strokeOpacity={0.3} strokeWidth={1}/>
                   <Line type="monotone" dataKey={dKey} stroke={color} strokeWidth={1.8}
