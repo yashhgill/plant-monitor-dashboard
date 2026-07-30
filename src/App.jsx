@@ -3,76 +3,50 @@ import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceL
 
 const API = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
-// ── i18n ──────────────────────────────────────────────────────
 const T = {
   en: {
-    sub:"Smart Greenhouse",
-    live:"Live", espOff:"Sensor offline", netOff:"Offline",
-    temp:"Temperature", humid:"Humidity",
-    optimal:"In range", low:"Below range", high:"Above range",
-    fan:"Fan", pump:"Pump", auto:"Auto",
-    running:"Running", misting:"Misting", idle:"Idle", manual:"Manual",
-    controls:"Controls", autoMode:"Automatic",
-    fanCtrl:"Fan", pumpCtrl:"Pump",
-    autoHint:"Disable Auto to control manually",
+    sub:"Smart Greenhouse", live:"Live", espOff:"Sensor offline", netOff:"Offline",
+    temp:"Temperature", humid:"Humidity", optimal:"In range", low:"Below range", high:"Above range",
+    fan:"Fan", pump:"Pump", auto:"Auto", running:"Running", misting:"Misting", idle:"Idle", manual:"Manual",
+    controls:"Controls", autoMode:"Automatic", fanCtrl:"Fan", pumpCtrl:"Pump",
+    autoHint:"Disable Auto to override controls",
     aiTitle:"Plant AI", aiBy:"Groq · LLaMA-3.3-70B",
-    aiPlaceholder:"What are you growing? — tomato, orchid, basil…",
-    aiBtn:"Set thresholds",
-    aiLoading:"Thinking…",
-    aiAdviceLabel:"Care notes",
-    aiEmpty:"Name a plant above and the AI will set the right conditions.",
-    aiFail:"AI unavailable — check GROQ_API_KEY on backend.",
-    activeFor:"Tuned for",
-    thriving:"Thriving", good:"Good", fair:"Fair", stressed:"Stressed",
-    health:"Plant health",
-    standby:"Standby", fanAct:"Running", pumpAct:"Misting",
-    fanPump:"Fan + Pump", manMode:"Manual",
-    alertOn:"Alerts on", alertOff:"Enable alerts",
-    alertIOS:"Add to Home Screen for alerts",
-    rgbLabel:"Device",
-    updated:"Updated",
+    aiPlaceholder:"Enter plant name — tomato, orchid, basil…",
+    aiBtn:"Set & Control", aiLoading:"Thinking…", aiAdviceLabel:"Care notes",
+    aiEmpty:"Enter a plant name and the AI will set the optimal thresholds.",
+    aiFail:"AI unavailable. Check GROQ_API_KEY on backend.",
+    activeFor:"Active for", thriving:"Thriving", good:"Good", fair:"Fair", stressed:"Stressed",
+    health:"Plant Health", standby:"Standby", fanAct:"Running", pumpAct:"Misting",
+    fanPump:"Fan + Pump", manMode:"Manual", alertOn:"Alerts on", alertOff:"Enable alerts",
+    alertIOS:"Add to Home Screen for alerts", rgbLabel:"Device status", updated:"Updated",
   },
   ms: {
-    sub:"Rumah Hijau Pintar",
-    live:"Langsung", espOff:"Penderia luar talian", netOff:"Luar Talian",
-    temp:"Suhu", humid:"Kelembapan",
-    optimal:"Dalam julat", low:"Terlalu rendah", high:"Terlalu tinggi",
-    fan:"Kipas", pump:"Pam", auto:"Auto",
-    running:"Berjalan", misting:"Menyembur", idle:"Rehat", manual:"Manual",
-    controls:"Kawalan", autoMode:"Automatik",
-    fanCtrl:"Kipas", pumpCtrl:"Pam",
+    sub:"Rumah Hijau Pintar", live:"Langsung", espOff:"Penderia luar talian", netOff:"Luar Talian",
+    temp:"Suhu", humid:"Kelembapan", optimal:"Dalam julat", low:"Terlalu rendah", high:"Terlalu tinggi",
+    fan:"Kipas", pump:"Pam", auto:"Auto", running:"Berjalan", misting:"Menyembur", idle:"Rehat", manual:"Manual",
+    controls:"Kawalan", autoMode:"Automatik", fanCtrl:"Kipas", pumpCtrl:"Pam",
     autoHint:"Nyahaktifkan Auto untuk kawal sendiri",
     aiTitle:"AI Pokok", aiBy:"Groq · LLaMA-3.3-70B",
-    aiPlaceholder:"Apa yang anda tanam? — tomato, orkid, selasih…",
-    aiBtn:"Tetap ambang",
-    aiLoading:"Sedang berfikir…",
-    aiAdviceLabel:"Nota penjagaan",
-    aiEmpty:"Namakan pokok di atas dan AI akan tetapkan keadaan yang betul.",
-    aiFail:"AI tidak tersedia — semak GROQ_API_KEY.",
-    activeFor:"Diselaraskan untuk",
-    thriving:"Subur", good:"Baik", fair:"Sederhana", stressed:"Tertekan",
-    health:"Kesihatan pokok",
-    standby:"Sedia", fanAct:"Berjalan", pumpAct:"Menyembur",
-    fanPump:"Kipas + Pam", manMode:"Manual",
-    alertOn:"Amaran aktif", alertOff:"Aktifkan amaran",
-    alertIOS:"Tambah ke Skrin Utama",
-    rgbLabel:"Peranti",
-    updated:"Dikemas kini",
+    aiPlaceholder:"Nama pokok — tomato, orkid, selasih…",
+    aiBtn:"Tetap & Kawal", aiLoading:"Berfikir…", aiAdviceLabel:"Nota penjagaan",
+    aiEmpty:"Masukkan nama pokok dan AI akan tetapkan ambang optimum.",
+    aiFail:"AI tidak tersedia. Semak GROQ_API_KEY.",
+    activeFor:"Aktif untuk", thriving:"Subur", good:"Baik", fair:"Sederhana", stressed:"Tertekan",
+    health:"Kesihatan Pokok", standby:"Sedia", fanAct:"Berjalan", pumpAct:"Menyembur",
+    fanPump:"Kipas + Pam", manMode:"Manual", alertOn:"Amaran aktif", alertOff:"Aktifkan amaran",
+    alertIOS:"Tambah ke Skrin Utama", rgbLabel:"Status peranti", updated:"Dikemas kini",
   },
 };
 
-// ── Notifications ─────────────────────────────────────────────
 async function requestNotif() {
   if (!("Notification" in window)) return false;
   if (Notification.permission === "granted") return true;
   return (await Notification.requestPermission()) === "granted";
 }
 function notify(title, body) {
-  if (Notification.permission === "granted")
-    new Notification(title, { body, icon: "/icon-192.png" });
+  if (Notification.permission === "granted") new Notification(title, { body, icon: "/icon-192.png" });
 }
 
-// ── Health ────────────────────────────────────────────────────
 function calcHealth(temp, humid, th) {
   let s = 100;
   if (temp  > th.temp_high)  s -= Math.min(40, (temp  - th.temp_high)  * 9);
@@ -82,24 +56,23 @@ function calcHealth(temp, humid, th) {
   return Math.max(0, Math.round(s));
 }
 function healthMeta(score, t) {
-  if (score >= 85) return { label: t.thriving, color: "#8FAF6A" };
-  if (score >= 65) return { label: t.good,     color: "#A8C572" };
-  if (score >= 40) return { label: t.fair,     color: "#C4956A" };
-  return               { label: t.stressed, color: "#C4614A" };
+  if (score >= 85) return { label: t.thriving, color: "#16A34A" };
+  if (score >= 65) return { label: t.good,     color: "#65A30D" };
+  if (score >= 40) return { label: t.fair,     color: "#D97706" };
+  return               { label: t.stressed, color: "#DC2626" };
 }
 function getRGB(fanOn, pumpOn, auto_, t) {
-  if (!auto_)           return { color: "#9B8AC4", label: t.manMode };
-  if (fanOn && pumpOn)  return { color: "#6AB8C4", label: t.fanPump };
-  if (fanOn)            return { color: "#6A94C4", label: t.fanAct };
-  if (pumpOn)           return { color: "#8FAF6A", label: t.pumpAct };
-  return                       { color: "#6B5A3E", label: t.standby };
+  if (!auto_)          return { color: "#7C3AED", label: t.manMode };
+  if (fanOn && pumpOn) return { color: "#0891B2", label: t.fanPump };
+  if (fanOn)           return { color: "#2563EB", label: t.fanAct };
+  if (pumpOn)          return { color: "#16A34A", label: t.pumpAct };
+  return                      { color: "#9CA3AF", label: t.standby };
 }
 
-// ── Main App ──────────────────────────────────────────────────
 export default function App() {
-  const [lang, setLang]     = useState(() => localStorage.getItem("aip_lang") || "en");
+  const [lang, setLang] = useState(() => localStorage.getItem("aip_lang") || "en");
   const t = T[lang];
-  const [latest, setLatest] = useState({ temperature:0, humidity:0, fan:false, pump:false, auto:true, ts:"--" });
+  const [latest, setLatest]     = useState({ temperature:0, humidity:0, fan:false, pump:false, auto:true, ts:"--" });
   const [history, setHistory]   = useState([]);
   const [thresh, setThresh]     = useState({ temp_high:25, temp_low:23, humid_low:40, humid_high:55, plant:"", advice:"" });
   const [autoMode, setAutoMode] = useState(true);
@@ -112,9 +85,8 @@ export default function App() {
   const [espOk,     setEspOk]     = useState(false);
   const [notifGranted,   setNotifGranted]   = useState(false);
   const [notifSupported, setNotifSupported] = useState(false);
-
   const pendingRef = useRef({});
-  const prevRef    = useRef({ fan: false, pump: false, health: 100 });
+  const prevRef    = useRef({ fan:false, pump:false, health:100 });
   const lastTsRef  = useRef("--");
 
   useEffect(() => { localStorage.setItem("aip_lang", lang); }, [lang]);
@@ -130,13 +102,13 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    const prev = prevRef.current;
-    if (fanOn && !prev.fan)           notify("🌿 AI Planter", `${t.fan} on`);
-    if (!fanOn && prev.fan)           notify("🌿 AI Planter", `${t.fan} off`);
-    if (pumpOn && !prev.pump)         notify("🌿 AI Planter", `${t.pump} on`);
-    if (!pumpOn && prev.pump)         notify("🌿 AI Planter", `${t.pump} off`);
-    if (score < 40 && prev.health >= 40) notify("🌿 AI Planter", `${t.stressed} — ${score}/100`);
-    prevRef.current = { fan: fanOn, pump: pumpOn, health: score };
+    const p = prevRef.current;
+    if (fanOn  && !p.fan)          notify("AI Planter", `${t.fan} ON`);
+    if (!fanOn && p.fan)           notify("AI Planter", `${t.fan} OFF`);
+    if (pumpOn && !p.pump)         notify("AI Planter", `${t.pump} ON`);
+    if (!pumpOn && p.pump)         notify("AI Planter", `${t.pump} OFF`);
+    if (score < 40 && p.health >= 40) notify("AI Planter", `${t.stressed} — ${score}/100`);
+    prevRef.current = { fan:fanOn, pump:pumpOn, health:score };
   }, [fanOn, pumpOn, score]);
 
   const poll = useCallback(async () => {
@@ -153,18 +125,17 @@ export default function App() {
         if (pendingRef.current.auto  === undefined) setAutoMode(d.latest.auto);
         if (pendingRef.current.fan   === undefined) setFanOn(d.latest.fan);
         if (pendingRef.current.pump  === undefined) setPumpOn(d.latest.pump);
-      } else if (ts === lastTsRef.current && ts !== "--") { setEspOk(false); }
+      } else if (ts === lastTsRef.current && ts !== "--") setEspOk(false);
     } catch { setBackendOk(false); setEspOk(false); }
   }, []);
 
   useEffect(() => { poll(); const id = setInterval(poll, 5000); return () => clearInterval(id); }, [poll]);
 
-  const clearPend = k => setTimeout(() => { pendingRef.current = { ...pendingRef.current, [k]: undefined }; }, 8000);
+  const clearPend = k => setTimeout(() => { pendingRef.current = { ...pendingRef.current, [k]:undefined }; }, 8000);
   const send = p => fetch(`${API}/control`, { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(p) });
 
   const toggleAuto = () => {
-    const n = !autoMode; setAutoMode(n);
-    pendingRef.current.auto = n; clearPend("auto"); send({ auto: n });
+    const n = !autoMode; setAutoMode(n); pendingRef.current.auto = n; clearPend("auto"); send({ auto:n });
     if (n) { setFanOn(false); setPumpOn(false); pendingRef.current.fan = undefined; pendingRef.current.pump = undefined; }
   };
   const toggleFan  = () => { if (autoMode) return; const n=!fanOn;  setFanOn(n);  pendingRef.current.fan=n;  clearPend("fan");  send({fan:n}); };
@@ -177,70 +148,60 @@ export default function App() {
       const r = await fetch(`${API}/ai-advice?plant=${encodeURIComponent(plant)}`);
       if (!r.ok) throw new Error(await r.text());
       const d = await r.json();
-      if (d.thresholds) { setThresh(d.thresholds); notify("🌿 AI Planter", `Set for ${plant}`); }
+      if (d.thresholds) { setThresh(d.thresholds); notify("AI Planter", `Set for ${plant}`); }
     } catch { setAiError(t.aiFail); }
     setAiLoading(false);
   };
 
   const connLabel = !backendOk ? t.netOff : !espOk ? t.espOff : t.live;
-  const connColor = espOk ? "#8FAF6A" : backendOk ? "#C4956A" : "#C4614A";
+  const connColor = espOk ? "#16A34A" : backendOk ? "#D97706" : "#DC2626";
 
-  // Health ring
-  const R = 42, C2 = 2 * Math.PI * R;
-  const arc = (score / 100) * C2 * 0.75;
+  const R = 40, C2 = 2*Math.PI*R;
+  const arc = (score/100)*C2*0.75;
 
-  // Bar helper
-  const bar = (val, low, high, color) => {
-    const min = low - 4, max = high + 4, span = max - min;
-    const pct = Math.min(100, Math.max(0, ((val - min) / span) * 100));
-    const zl  = ((low - min) / span) * 100;
-    const zw  = ((high - low) / span) * 100;
-    return { pct, zl, zw };
+  const barCalc = (val, low, high) => {
+    const span = (high+5)-(low-5);
+    return {
+      pct: Math.min(100, Math.max(0, ((val-(low-5))/span)*100)),
+      zl:  ((low-(low-5))/span)*100,
+      zw:  ((high-low)/span)*100,
+    };
   };
 
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400;1,600&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Montserrat:wght@400;500;600;700&display=swap');
 
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
 
         :root {
-          /* Lighter earthy palette */
-          --soil:      #EAE4D6;
-          --bark:      #EDE8DC;
-          --heartwood: #E2DACC;
-          --border:    #C8BC9E;
-          --sage:      #5A8040;
-          --terra:     #B06A30;
-          --grass:     #2E2416;
-          --mulch:     #7A6A50;
-          --moss:      #4A6A2A;
-          --dew:       #3A8870;
-          --sky:       #4A7EAA;
-          --clay:      #A03820;
-
-          /* Neomorphic shadows — warm light source top-left */
-          --nm-out:  6px 6px 14px rgba(155,138,108,0.55), -4px -4px 10px rgba(255,253,245,0.9);
-          --nm-in:   inset 4px 4px 9px rgba(155,138,108,0.45), inset -3px -3px 7px rgba(255,253,245,0.85);
-          --nm-flat: 3px 3px 7px rgba(155,138,108,0.4), -2px -2px 5px rgba(255,253,245,0.8);
-
-          --r:    18px;
-          --r-sm: 12px;
-          --r-xs: 8px;
+          --bg:      #F8FAFC;
+          --surface: #FFFFFF;
+          --surface2:#F1F5F9;
+          --border:  #E2E8F0;
+          --green:   #16A34A;
+          --green-l: #DCFCE7;
+          --blue:    #2563EB;
+          --blue-l:  #DBEAFE;
+          --amber:   #D97706;
+          --amber-l: #FEF3C7;
+          --red:     #DC2626;
+          --red-l:   #FEE2E2;
+          --purple:  #7C3AED;
+          --cyan:    #0891B2;
+          --text:    #0F172A;
+          --muted:   #64748B;
+          --subtle:  #94A3B8;
+          --r:       12px;
+          --r-sm:    8px;
         }
 
-        html { -webkit-text-size-adjust: 100%; }
-
+        html { -webkit-text-size-adjust:100%; }
         body {
-          background: var(--soil);
-          background-image:
-            radial-gradient(ellipse 80% 55% at 10% 0%,  rgba(120,170,80,0.10) 0%, transparent 55%),
-            radial-gradient(ellipse 55% 65% at 90% 100%, rgba(196,149,106,0.09) 0%, transparent 55%),
-            radial-gradient(ellipse 100% 40% at 50% 50%, rgba(255,253,245,0.25) 0%, transparent 70%);
-          background-attachment: fixed;
-          color: var(--grass);
-          font-family: 'DM Sans', -apple-system, sans-serif;
+          background: var(--bg);
+          color: var(--text);
+          font-family: 'Poppins', sans-serif;
           min-height: 100dvh;
           overscroll-behavior: none;
         }
@@ -248,364 +209,184 @@ export default function App() {
         .wrap {
           max-width: 430px;
           margin: 0 auto;
-          padding: 0 14px 56px;
-          padding-top: max(18px, env(safe-area-inset-top, 18px));
+          padding: 0 16px 56px;
+          padding-top: max(20px, env(safe-area-inset-top, 20px));
         }
 
-        /* ── Neomorphic card ── */
         .card {
-          background: var(--bark);
-          border: none;
+          background: var(--surface);
+          border: 1px solid var(--border);
           border-radius: var(--r);
-          box-shadow: var(--nm-out);
-          position: relative;
-          overflow: hidden;
-        }
-        .card::before {
-          content: "";
-          position: absolute; inset: 0;
-          background: linear-gradient(145deg, rgba(255,253,245,0.4) 0%, transparent 55%);
-          pointer-events: none;
-          border-radius: inherit;
-        }
-        .card-inner {
-          background: var(--heartwood);
-          border: none;
-          border-radius: var(--r-sm);
-          box-shadow: var(--nm-in);
-          position: relative;
-        }
-
-        /* ── Typography ── */
-        .display {
-          font-family: 'Playfair Display', Georgia, serif;
-          font-style: italic;
-        }
-        .mono { font-family: 'DM Mono', monospace; }
-        .label-xs {
-          font-size: 10px; font-weight: 500; letter-spacing: 0.1em;
-          text-transform: uppercase; color: var(--mulch);
         }
 
         /* ── Header ── */
-        .hdr {
-          display: flex; align-items: center;
-          justify-content: space-between;
-          padding-bottom: 16px;
-        }
-        .hdr-brand { display: flex; align-items: center; gap: 10px; }
+        .hdr { display:flex; align-items:center; justify-content:space-between; padding-bottom:18px; }
+        .hdr-brand { display:flex; align-items:center; gap:10px; }
         .brand-mark {
-          width: 34px; height: 34px; border-radius: 10px;
-          background: linear-gradient(145deg, var(--moss), var(--sage));
-          display: flex; align-items: center; justify-content: center;
-          font-size: 17px; box-shadow: var(--depth-1), 0 0 12px rgba(143,175,106,0.2);
+          width:36px; height:36px; border-radius:10px;
+          background:#16A34A; display:flex; align-items:center; justify-content:center; font-size:18px;
         }
-        .brand-name { font-size: 15px; font-weight: 600; color: var(--grass); }
-        .brand-tag  { font-size: 10px; color: var(--mulch); margin-top: 1px; }
-        .hdr-right  { display: flex; align-items: center; gap: 7px; }
-
-        .status-pill {
-          display: flex; align-items: center; gap: 5px;
-          background: var(--bark); border: none;
-          border-radius: 20px; padding: 5px 11px;
-          font-size: 10px; font-weight: 500; color: var(--mulch);
-          box-shadow: var(--nm-flat);
+        .brand-name { font-family:'Montserrat',sans-serif; font-size:15px; font-weight:700; color:var(--text); }
+        .brand-sub  { font-size:11px; color:var(--muted); }
+        .hdr-right  { display:flex; gap:8px; align-items:center; }
+        .status-chip {
+          display:flex; align-items:center; gap:5px;
+          background:var(--surface); border:1px solid var(--border);
+          border-radius:20px; padding:5px 11px;
+          font-size:11px; font-weight:500; color:var(--muted);
         }
-        .pip { width: 6px; height: 6px; border-radius: 50%; }
-        .pip.live { animation: breathe 3s ease-in-out infinite; }
-        @keyframes breathe { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.6;transform:scale(0.85)} }
-
-        .lang-pill {
-          background: var(--bark); border: none;
-          border-radius: 20px; padding: 5px 11px;
-          font-size: 10px; font-weight: 600; color: var(--mulch);
-          cursor: pointer; box-shadow: var(--nm-flat); transition: all 0.15s;
+        .pip { width:7px; height:7px; border-radius:50%; }
+        .pip.live { animation:blink 2.5s ease-in-out infinite; }
+        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.4} }
+        .lang-btn {
+          background:var(--surface); border:1px solid var(--border);
+          border-radius:20px; padding:5px 12px;
+          font-size:11px; font-weight:600; color:var(--muted);
+          cursor:pointer; font-family:'Poppins',sans-serif;
         }
-        .lang-pill:active { transform: scale(0.93); }
+        .lang-btn:active { background:var(--surface2); }
 
-        /* ── Section gap ── */
-        .gap { margin-bottom: 10px; }
+        .gap { margin-bottom:10px; }
+        .label { font-size:10px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:var(--muted); }
 
         /* ── AI Panel ── */
-        .ai-panel { padding: 18px; }
-        .ai-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 12px; }
-        .ai-title { font-size: 16px; font-weight: 600; color: var(--grass); }
-        .ai-by    { font-size: 10px; color: var(--mulch); }
-        .ai-active {
-          font-size: 10px; font-family: 'DM Mono', monospace;
-          color: var(--terra); background: rgba(196,149,106,0.1);
-          border: 1px solid rgba(196,149,106,0.2);
-          border-radius: 6px; padding: 2px 8px;
+        .ai-card { padding:18px; }
+        .ai-head { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:14px; }
+        .ai-title { font-family:'Montserrat',sans-serif; font-size:15px; font-weight:700; color:var(--text); }
+        .ai-by    { font-size:10px; color:var(--muted); margin-top:2px; }
+        .ai-tag {
+          font-size:10px; font-weight:600; color:var(--green);
+          background:var(--green-l); border-radius:6px; padding:2px 9px;
         }
-        .ai-row { display: flex; gap: 8px; margin-bottom: 12px; }
+        .ai-row { display:flex; gap:8px; margin-bottom:12px; }
         .ai-input {
-          flex: 1; background: var(--heartwood);
-          border: none; border-radius: var(--r-sm);
-          padding: 11px 13px; color: var(--grass);
-          font-family: 'DM Sans', sans-serif; font-size: 14px;
-          outline: none; transition: box-shadow 0.2s;
-          -webkit-appearance: none; box-shadow: var(--nm-in);
+          flex:1; background:var(--surface2); border:1.5px solid var(--border);
+          border-radius:var(--r-sm); padding:11px 13px; color:var(--text);
+          font-family:'Poppins',sans-serif; font-size:13px; outline:none;
+          transition:border-color 0.15s; -webkit-appearance:none;
         }
-        .ai-input::placeholder { color: var(--mulch); }
-        .ai-input:focus {
-          box-shadow: var(--nm-in), 0 0 0 2px rgba(176,106,48,0.2);
-        }
+        .ai-input::placeholder { color:var(--subtle); }
+        .ai-input:focus { border-color:var(--green); }
         .ai-btn {
-          background: var(--bark);
-          color: var(--terra); border: none;
-          border-radius: var(--r-sm); padding: 11px 16px;
-          font-family: 'DM Sans', sans-serif; font-size: 13px;
-          font-weight: 600; cursor: pointer; white-space: nowrap;
-          transition: box-shadow 0.18s, transform 0.12s;
-          box-shadow: var(--nm-out);
+          background:var(--green); color:#fff; border:none;
+          border-radius:var(--r-sm); padding:11px 18px;
+          font-family:'Poppins',sans-serif; font-size:13px; font-weight:600;
+          cursor:pointer; white-space:nowrap; transition:opacity 0.15s;
         }
-        .ai-btn:hover:not(:disabled) {
-          box-shadow: 4px 4px 10px rgba(155,138,108,0.5), -2px -2px 7px rgba(255,253,245,0.85);
+        .ai-btn:active { opacity:0.85; }
+        .ai-btn:disabled { opacity:0.45; cursor:not-allowed; }
+        .ai-progress { height:3px; background:var(--border); border-radius:3px; overflow:hidden; margin-bottom:12px; }
+        .ai-progress-fill {
+          height:100%; background:var(--green); width:40%;
+          animation:slide 1.4s ease-in-out infinite;
         }
-        .ai-btn:active { transform: scale(0.96); }
-        .ai-btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
-
-        .ai-prog {
-          height: 2px; background: rgba(196,149,106,0.1);
-          border-radius: 2px; overflow: hidden; margin-bottom: 12px;
+        @keyframes slide { 0%{transform:translateX(-200%)} 100%{transform:translateX(450%)} }
+        .ai-error {
+          font-size:12px; color:var(--red); margin-bottom:10px;
+          padding:9px 12px; background:var(--red-l);
+          border-radius:var(--r-sm);
         }
-        .ai-prog-fill {
-          height: 100%; width: 40%;
-          background: linear-gradient(90deg, transparent, var(--terra), transparent);
-          animation: sweep 1.6s ease-in-out infinite;
-        }
-        @keyframes sweep { 0%{transform:translateX(-150%)} 100%{transform:translateX(350%)} }
-
-        .ai-err {
-          font-size: 12px; color: var(--clay); margin-bottom: 10px;
-          padding: 9px 12px; background: rgba(196,97,74,0.08);
-          border: 1px solid rgba(196,97,74,0.2); border-radius: var(--r-xs);
-        }
-        .ai-result { display: flex; flex-direction: column; gap: 8px; }
-        .ai-thresh-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .ai-result { display:flex; flex-direction:column; gap:8px; }
+        .ai-thresh-row { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
         .ai-thresh-item {
-          padding: 12px 14px;
-          background: var(--heartwood); border: none;
-          border-radius: var(--r-sm); box-shadow: var(--nm-in);
+          background:var(--surface2); border:1px solid var(--border);
+          border-radius:var(--r-sm); padding:12px 14px;
         }
-        .ai-thresh-val {
-          font-family: 'Playfair Display', serif;
-          font-size: 18px; font-weight: 600; color: var(--terra);
-          display: block; margin-bottom: 2px;
-        }
+        .ai-thresh-val { font-family:'Montserrat',sans-serif; font-size:17px; font-weight:700; color:var(--amber); display:block; margin-bottom:3px; }
         .ai-advice-box {
-          padding: 13px 14px;
-          background: var(--heartwood); border: none;
-          border-radius: var(--r-sm); box-shadow: var(--nm-in);
+          background:var(--amber-l); border-radius:var(--r-sm); padding:12px 14px;
         }
-        .ai-advice-text {
-          font-size: 12.5px; line-height: 1.68; color: var(--mulch);
-          font-style: italic; font-family: 'Playfair Display', serif;
-        }
-        .ai-empty { font-size: 12.5px; color: var(--mulch); text-align: center; padding: 4px 0; line-height: 1.6; }
+        .ai-advice-text { font-size:12px; line-height:1.65; color:#92400E; }
+        .ai-empty { font-size:12px; color:var(--subtle); text-align:center; padding:6px 0; line-height:1.6; }
 
         /* ── Sensor hero ── */
         .sensor-hero {
-          display: grid; grid-template-columns: 1fr 1fr;
-          gap: 2px; background: var(--border);
-          border-radius: var(--r); overflow: hidden;
-          box-shadow: var(--nm-out);
+          display:grid; grid-template-columns:1fr 1fr;
+          border-radius:var(--r); overflow:hidden;
+          border:1px solid var(--border); background:var(--border); gap:1px;
         }
-        .sensor-cell {
-          background: var(--bark); padding: 20px 18px 16px;
-          position: relative;
+        .sensor-cell { background:var(--surface); padding:20px 18px 16px; }
+        .sensor-label { margin-bottom:10px; }
+        .sensor-num {
+          font-family:'Montserrat',sans-serif; font-weight:700;
+          font-size:52px; line-height:1; letter-spacing:-0.03em;
         }
-        /* Sensor hero itself gets neomorphic treatment */
-        .sensor-cell::after {
-          content: "";
-          position: absolute; inset: 0;
-          background: linear-gradient(160deg, rgba(212,201,168,0.03) 0%, transparent 50%);
-          pointer-events: none;
-        }
-        .sensor-eyebrow { margin-bottom: 10px; }
-        .sensor-number {
-          font-family: 'Playfair Display', Georgia, serif;
-          font-style: italic;
-          font-size: 54px; font-weight: 400; line-height: 1;
-          letter-spacing: -0.02em; margin-bottom: 0;
-        }
-        .sensor-unit {
-          font-size: 16px; color: var(--mulch);
-          font-family: 'DM Mono', monospace; margin-left: 2px;
-          vertical-align: super; font-size: 13px;
-        }
-        .sensor-status {
-          display: flex; align-items: center; gap: 5px;
-          margin-top: 8px; margin-bottom: 7px;
-          font-size: 11px; font-weight: 500;
-        }
-        .sensor-bar-bg {
-          height: 3px; background: rgba(255,255,255,0.05);
-          border-radius: 3px; position: relative; overflow: hidden;
-        }
-        .sensor-bar-zone {
-          position: absolute; top: 0; height: 100%;
-          background: rgba(143,175,106,0.15); border-radius: 3px;
-        }
-        .sensor-bar-fill {
-          position: absolute; top: 0; left: 0; height: 100%;
-          border-radius: 3px; transition: width 0.7s cubic-bezier(0.4,0,0.2,1), background 0.4s;
-        }
-        .sensor-range {
-          font-size: 9px; font-family: 'DM Mono', monospace;
-          color: var(--border); margin-top: 5px;
-        }
+        .sensor-unit { font-size:14px; color:var(--muted); font-weight:400; margin-left:2px; }
+        .sensor-status { display:flex; align-items:center; gap:5px; margin-top:8px; margin-bottom:7px; }
+        .sensor-status-text { font-size:11px; font-weight:600; }
+        .bar-bg { height:3px; background:var(--surface2); border-radius:3px; position:relative; overflow:hidden; }
+        .bar-zone { position:absolute; top:0; height:100%; background:rgba(22,163,74,0.12); border-radius:3px; }
+        .bar-fill { position:absolute; top:0; left:0; height:100%; border-radius:3px; transition:width 0.6s ease,background 0.3s; }
+        .sensor-range { font-size:9px; color:var(--subtle); margin-top:5px; font-weight:500; }
 
-        /* ── Health + Status row ── */
-        .health-status-row {
-          display: grid; grid-template-columns: 1fr 1fr;
-          gap: 10px;
-        }
-        /* Health card */
-        .health-card { padding: 16px 14px; }
-        .health-ring-wrap { position: relative; width: 90px; height: 90px; margin: 0 auto 8px; }
-        .health-ring-wrap svg { width: 100%; height: 100%; overflow: visible; }
-        .health-overlay {
-          position: absolute; inset: 0;
-          display: flex; flex-direction: column; align-items: center; justify-content: center;
-        }
-        .health-num {
-          font-family: 'Playfair Display', serif; font-style: italic;
-          font-size: 24px; font-weight: 600; line-height: 1;
-        }
-        .health-denom { font-size: 9px; color: var(--mulch); margin-top: 1px; }
-        .health-label { font-size: 12px; font-weight: 600; text-align: center; margin-bottom: 3px; }
-        .health-plant { font-size: 10px; color: var(--mulch); text-align: center; font-family: 'DM Mono', monospace; }
+        /* ── Health + Status ── */
+        .hs-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+        .health-card { padding:16px; text-align:center; }
+        .ring-wrap { width:88px; height:88px; position:relative; margin:0 auto 8px; }
+        .ring-wrap svg { width:100%; height:100%; overflow:visible; }
+        .ring-overlay { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+        .ring-num { font-family:'Montserrat',sans-serif; font-size:22px; font-weight:700; line-height:1; }
+        .ring-denom { font-size:9px; color:var(--muted); margin-top:1px; }
+        .health-status { font-size:13px; font-weight:600; margin-bottom:3px; }
+        .health-plant { font-size:10px; color:var(--muted); }
 
-        /* Status card */
-        .status-card { padding: 16px 14px; display: flex; flex-direction: column; justify-content: space-between; }
-        .rgb-wrap { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
-        .rgb-sphere {
-          width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0;
-          transition: background 0.5s, box-shadow 0.5s;
-          position: relative;
-        }
-        .rgb-sphere::after {
-          content: "";
-          position: absolute; top: 18%; left: 22%; width: 30%; height: 25%;
-          background: rgba(255,255,255,0.25);
-          border-radius: 50%; filter: blur(2px);
-        }
-        .rgb-state { font-size: 13px; font-weight: 500; }
+        .status-card { padding:16px; display:flex; flex-direction:column; justify-content:space-between; gap:10px; }
+        .rgb-row { display:flex; align-items:center; gap:10px; }
+        .rgb-dot { width:34px; height:34px; border-radius:50%; flex-shrink:0; transition:background 0.4s; }
+        .rgb-state { font-size:13px; font-weight:600; }
         .notif-btn {
-          width: 100%; background: var(--bark);
-          border: none; border-radius: var(--r-xs);
-          padding: 8px; font-size: 11px; font-weight: 500;
-          color: var(--mulch); cursor: pointer; text-align: center;
-          transition: all 0.18s; font-family: 'DM Sans', sans-serif;
-          box-shadow: var(--nm-flat);
+          width:100%; background:var(--surface2); border:1px solid var(--border);
+          border-radius:var(--r-sm); padding:8px; font-size:11px; font-weight:500;
+          color:var(--muted); cursor:pointer; font-family:'Poppins',sans-serif; transition:all 0.15s;
         }
-        .notif-btn.on { color: var(--sage); }
-        .notif-btn:active { transform: scale(0.97); }
-        .ios-hint { font-size: 10px; color: var(--mulch); text-align: center; line-height: 1.4; }
+        .notif-btn.on { background:var(--green-l); color:var(--green); border-color:rgba(22,163,74,0.3); }
+        .ios-hint { font-size:10px; color:var(--subtle); text-align:center; line-height:1.4; }
 
         /* ── Indicators ── */
-        .inds { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; }
-        .ind {
-          padding: 12px 8px 10px; text-align: center;
-          transition: box-shadow 0.3s;
-        }
-        .ind.on {
-          box-shadow: var(--nm-in), 0 0 18px color-mix(in srgb, var(--ic) 22%, transparent) !important;
-        }
-        .ind-orb-wrap {
-          width: 38px; height: 38px; border-radius: 50%;
-          margin: 0 auto 7px; display: flex; align-items: center; justify-content: center;
-          background: rgba(255,255,255,0.03);
-          transition: background 0.3s, box-shadow 0.3s;
-          font-size: 16px; position: relative;
-        }
-        .ind.on .ind-orb-wrap {
-          background: color-mix(in srgb, var(--ic) 15%, transparent);
-          box-shadow: 0 0 16px color-mix(in srgb, var(--ic) 30%, transparent);
-        }
-        .ind-glow {
-          position: absolute; inset: -4px; border-radius: 50%;
-          opacity: 0; transition: opacity 0.3s;
-          animation: none;
-        }
-        .ind.on .ind-glow { opacity: 1; animation: orglow 2.5s ease-in-out infinite; }
-        @keyframes orglow { 0%,100%{opacity:0.3;transform:scale(1)} 50%{opacity:0.1;transform:scale(1.15)} }
-        .ind-name  { font-size: 9px; color: var(--mulch); text-transform: uppercase; letter-spacing: 0.09em; margin-bottom: 2px; }
-        .ind-state { font-size: 11px; font-weight: 500; color: var(--mulch); transition: color 0.3s; }
-        .ind.on .ind-state { color: var(--ic); }
+        .inds { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+        .ind { padding:14px 8px 12px; text-align:center; border:1px solid var(--border); border-radius:var(--r); background:var(--surface); transition:border-color 0.2s,background 0.2s; }
+        .ind.on { border-color:var(--ic); background:color-mix(in srgb, var(--ic) 6%, white); }
+        .ind-icon { font-size:22px; margin-bottom:6px; display:block; }
+        .ind-name  { font-size:9px; font-weight:600; text-transform:uppercase; letter-spacing:0.08em; color:var(--muted); margin-bottom:2px; }
+        .ind-state { font-size:11px; font-weight:500; color:var(--muted); transition:color 0.2s; }
+        .ind.on .ind-state { color:var(--ic); }
 
         /* ── Charts ── */
-        .charts { display: flex; flex-direction: column; gap: 10px; }
-        .chart-card { padding: 16px 14px; }
-        /* chart bg uses nm-out already via .card */
-        .chart-hdr { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 12px; }
-        .chart-name { font-size: 12px; font-weight: 500; color: var(--mulch); }
-        .chart-range { font-size: 10px; font-family: 'DM Mono', monospace; color: var(--border); }
+        .charts { display:flex; flex-direction:column; gap:10px; }
+        .chart-card { padding:16px; }
+        .chart-hdr { display:flex; align-items:baseline; justify-content:space-between; margin-bottom:12px; }
+        .chart-title { font-size:12px; font-weight:600; color:var(--muted); }
+        .chart-range { font-size:10px; color:var(--subtle); font-weight:500; }
 
         /* ── Controls ── */
-        .ctrl-card { padding: 16px 14px; }
-        .ctrl-list { display: flex; flex-direction: column; gap: 6px; margin-top: 12px; }
+        .ctrl-card { padding:16px; }
+        .ctrl-list { display:flex; flex-direction:column; gap:6px; margin-top:10px; }
         .ctrl-row {
-          display: flex; align-items: center; justify-content: space-between;
-          padding: 12px 14px; border-radius: var(--r-sm);
-          background: var(--bark); border: none;
-          cursor: pointer; transition: all 0.2s; box-shadow: var(--nm-flat);
-          user-select: none;
+          display:flex; align-items:center; justify-content:space-between;
+          padding:13px 14px; border-radius:var(--r-sm);
+          background:var(--surface2); border:1px solid var(--border);
+          cursor:pointer; transition:all 0.15s; user-select:none;
         }
-        .ctrl-row:hover:not(.ctrl-dim) {
-          box-shadow: 4px 4px 10px rgba(155,138,108,0.5), -2px -2px 7px rgba(255,253,245,0.85);
-        }
-        .ctrl-row:active:not(.ctrl-dim) { transform: scale(0.985); }
-        .ctrl-row.ctrl-dim { cursor: default; opacity: 0.38; }
-        .ctrl-row.ctrl-on { border: none !important; background: color-mix(in srgb, var(--ac) 10%, var(--bark)) !important; box-shadow: var(--nm-in) !important; }
-        .ctrl-left { display: flex; align-items: center; gap: 10px; }
-        .ctrl-pip {
-          width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
-          transition: background 0.25s, box-shadow 0.25s;
-        }
-        .ctrl-row.ctrl-on .ctrl-pip { box-shadow: 0 0 8px var(--ac); }
-        .ctrl-name { font-size: 14px; color: var(--grass); }
-        .ctrl-row.ctrl-on .ctrl-name { color: var(--ac); font-weight: 500; }
-        .ctrl-row.ctrl-dim .ctrl-name { color: var(--mulch); }
+        .ctrl-row:active:not(.dim) { background:var(--border); }
+        .ctrl-row.active { background:color-mix(in srgb, var(--ac) 8%, white); border-color:var(--ac); }
+        .ctrl-row.dim { opacity:0.4; cursor:not-allowed; }
+        .ctrl-left { display:flex; align-items:center; gap:10px; }
+        .ctrl-name { font-size:14px; font-weight:500; color:var(--text); }
+        .ctrl-row.active .ctrl-name { color:var(--ac); font-weight:600; }
+        .ctrl-row.dim .ctrl-name { color:var(--muted); }
 
-        /* Neomorphic toggle */
-        .toggle {
-          width: 44px; height: 26px; border-radius: 13px;
-          background: var(--heartwood); flex-shrink: 0;
-          position: relative; transition: background 0.22s, box-shadow 0.22s;
-          box-shadow: var(--nm-in);
-        }
-        .toggle.on { background: color-mix(in srgb, var(--ac) 25%, var(--bark)); box-shadow: var(--nm-in), 0 0 8px color-mix(in srgb, var(--ac) 35%, transparent); }
-        .toggle-thumb {
-          position: absolute; top: 3px; left: 3px;
-          width: 20px; height: 20px; border-radius: 10px;
-          background: var(--bark); box-shadow: 2px 2px 5px rgba(155,138,108,0.5), -1px -1px 3px rgba(255,253,245,0.8);
-          transition: transform 0.22s;
-        }
-        .toggle.on .toggle-thumb { transform: translateX(18px); }
+        .toggle { width:44px; height:26px; border-radius:13px; background:var(--border); position:relative; transition:background 0.2s; flex-shrink:0; }
+        .toggle.on { background:var(--ac); }
+        .thumb { position:absolute; top:3px; left:3px; width:20px; height:20px; border-radius:10px; background:#fff; transition:transform 0.2s; }
+        .toggle.on .thumb { transform:translateX(18px); }
 
-        .ctrl-hint { font-size: 11px; color: var(--mulch); text-align: center; margin-top: 8px; }
-
-        /* ── Footer ── */
-        .footer {
-          text-align: center; font-size: 10px; color: var(--border);
-          font-family: 'DM Mono', monospace; padding: 6px 0 2px;
-        }
-
-        /* ── Divider ── */
-        hr { border: none; border-top: 1px solid var(--border); margin: 0; }
-
-        ::-webkit-scrollbar { width: 3px; }
-        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+        .ctrl-hint { font-size:11px; color:var(--subtle); text-align:center; margin-top:8px; }
+        .footer { text-align:center; font-size:10px; color:var(--subtle); font-weight:500; padding:6px 0; }
 
         @supports (padding: max(0px)) {
           .wrap { padding-bottom: max(56px, env(safe-area-inset-bottom, 20px)); }
         }
-
-        @media (prefers-reduced-motion: reduce) {
-          *, *::before, *::after { animation: none !important; transition-duration: 0.01ms !important; }
-        }
+        @media (prefers-reduced-motion:reduce) { *,*::before,*::after { animation:none!important; transition-duration:0.01ms!important; } }
       `}</style>
 
       <div className="wrap">
@@ -613,162 +394,146 @@ export default function App() {
         {/* Header */}
         <header className="hdr">
           <div className="hdr-brand">
-            <div className="brand-mark">🌿</div>
+            <div className="brand-mark">🌱</div>
             <div>
               <div className="brand-name">AI Planter</div>
-              <div className="brand-tag">{t.sub}</div>
+              <div className="brand-sub">{t.sub}</div>
             </div>
           </div>
           <div className="hdr-right">
-            <div className="status-pill">
-              <div className={`pip ${espOk ? "live" : ""}`} style={{ background: connColor, boxShadow: espOk ? `0 0 5px ${connColor}` : "none" }}/>
+            <div className="status-chip">
+              <div className={`pip ${espOk ? "live" : ""}`} style={{background:connColor}}/>
               {connLabel}
             </div>
-            <button className="lang-pill" onClick={() => setLang(l => l === "en" ? "ms" : "en")}>
-              {lang === "en" ? "BM" : "EN"}
+            <button className="lang-btn" onClick={() => setLang(l => l==="en"?"ms":"en")}>
+              {lang==="en"?"BM":"EN"}
             </button>
           </div>
         </header>
 
         {/* AI Panel */}
-        <div className="card gap">
-          <div className="ai-panel">
-            <div className="ai-head">
-              <div>
-                <div className="ai-title">{t.aiTitle}</div>
-                <div className="ai-by">{t.aiBy}</div>
-              </div>
-              {thresh.plant && <div className="ai-active">{thresh.plant}</div>}
+        <div className="card ai-card gap">
+          <div className="ai-head">
+            <div>
+              <div className="ai-title">{t.aiTitle}</div>
+              <div className="ai-by">{t.aiBy}</div>
             </div>
-            <div className="ai-row">
-              <input className="ai-input" value={plant}
-                onChange={e => setPlant(e.target.value)}
-                onKeyDown={e => e.key === "Enter" && askAI()}
-                placeholder={t.aiPlaceholder}/>
-              <button className="ai-btn" onClick={askAI} disabled={aiLoading}>
-                {aiLoading ? t.aiLoading : t.aiBtn}
-              </button>
-            </div>
-            {aiLoading && <div className="ai-prog"><div className="ai-prog-fill"/></div>}
-            {aiError && <div className="ai-err">⚠ {aiError}</div>}
-            {thresh.advice ? (
-              <div className="ai-result">
-                <div className="ai-thresh-row">
-                  <div className="ai-thresh-item">
-                    <span className="ai-thresh-val">{thresh.temp_low}–{thresh.temp_high}°C</span>
-                    <span className="label-xs">{t.temp}</span>
-                  </div>
-                  <div className="ai-thresh-item">
-                    <span className="ai-thresh-val">{thresh.humid_low}–{thresh.humid_high}%</span>
-                    <span className="label-xs">{t.humid}</span>
-                  </div>
-                </div>
-                <div className="ai-advice-box">
-                  <div className="label-xs" style={{marginBottom:6}}>{t.aiAdviceLabel}</div>
-                  <div className="ai-advice-text">{thresh.advice}</div>
-                </div>
-              </div>
-            ) : !aiLoading && <p className="ai-empty">{t.aiEmpty}</p>}
+            {thresh.plant && <div className="ai-tag">{thresh.plant}</div>}
           </div>
+          <div className="ai-row">
+            <input className="ai-input" value={plant}
+              onChange={e=>setPlant(e.target.value)}
+              onKeyDown={e=>e.key==="Enter"&&askAI()}
+              placeholder={t.aiPlaceholder}/>
+            <button className="ai-btn" onClick={askAI} disabled={aiLoading}>
+              {aiLoading?t.aiLoading:t.aiBtn}
+            </button>
+          </div>
+          {aiLoading && <div className="ai-progress"><div className="ai-progress-fill"/></div>}
+          {aiError   && <div className="ai-error">⚠ {aiError}</div>}
+          {thresh.advice ? (
+            <div className="ai-result">
+              <div className="ai-thresh-row">
+                <div className="ai-thresh-item">
+                  <span className="ai-thresh-val">{thresh.temp_low}–{thresh.temp_high}°C</span>
+                  <span className="label">{t.temp}</span>
+                </div>
+                <div className="ai-thresh-item">
+                  <span className="ai-thresh-val">{thresh.humid_low}–{thresh.humid_high}%</span>
+                  <span className="label">{t.humid}</span>
+                </div>
+              </div>
+              <div className="ai-advice-box">
+                <div className="label" style={{marginBottom:5,color:"#92400E"}}>{t.aiAdviceLabel}</div>
+                <div className="ai-advice-text">{thresh.advice}</div>
+              </div>
+            </div>
+          ) : !aiLoading && <p className="ai-empty">{t.aiEmpty}</p>}
         </div>
 
         {/* Sensor Hero */}
         <div className="sensor-hero gap">
           {[
-            { key:"temperature", val:latest.temperature, unit:"°C", color:"#C4956A", low:thresh.temp_low, high:thresh.temp_high },
-            { key:"humidity",    val:latest.humidity,    unit:"%",  color:"#7AAED4", low:thresh.humid_low, high:thresh.humid_high },
-          ].map(({ key, val, unit, color, low, high }) => {
-            const ok = val >= low && val <= high;
-            const sc = ok ? "#8FAF6A" : val < low ? "#7AAED4" : "#C4614A";
-            const st = ok ? t.optimal : val < low ? t.low : t.high;
-            const { pct, zl, zw } = bar(val, low, high, sc);
+            {key:"temperature",val:latest.temperature,unit:"°C",color:"#DC2626",low:thresh.temp_low,high:thresh.temp_high},
+            {key:"humidity",   val:latest.humidity,   unit:"%", color:"#2563EB",low:thresh.humid_low,high:thresh.humid_high},
+          ].map(({key,val,unit,color,low,high})=>{
+            const ok=val>=low&&val<=high;
+            const sc=ok?"#16A34A":val<low?"#2563EB":"#DC2626";
+            const st=ok?t.optimal:val<low?t.low:t.high;
+            const {pct,zl,zw}=barCalc(val,low,high);
             return (
               <div className="sensor-cell" key={key}>
-                <div className="label-xs sensor-eyebrow">{t[key]}</div>
+                <div className="label sensor-label">{t[key]}</div>
                 <div>
-                  <span className="sensor-number" style={{ color }}>{val.toFixed(1)}</span>
+                  <span className="sensor-num" style={{color}}>{val.toFixed(1)}</span>
                   <span className="sensor-unit">{unit}</span>
                 </div>
                 <div className="sensor-status">
-                  <div className="pip" style={{ background: sc }}/>
-                  <span style={{ color: sc }}>{st}</span>
+                  <div className="pip" style={{background:sc}}/>
+                  <span className="sensor-status-text" style={{color:sc}}>{st}</span>
                 </div>
-                <div className="sensor-bar-bg">
-                  <div className="sensor-bar-zone" style={{ left:`${zl}%`, width:`${zw}%` }}/>
-                  <div className="sensor-bar-fill" style={{ width:`${pct}%`, background: sc }}/>
+                <div className="bar-bg">
+                  <div className="bar-zone" style={{left:`${zl}%`,width:`${zw}%`}}/>
+                  <div className="bar-fill" style={{width:`${pct}%`,background:sc}}/>
                 </div>
-                <div className="sensor-range mono">{low}–{high}{unit}</div>
+                <div className="sensor-range">{low}–{high}{unit}</div>
               </div>
             );
           })}
         </div>
 
         {/* Health + Status */}
-        <div className="health-status-row gap">
-          {/* Health ring */}
+        <div className="hs-row gap">
           <div className="card health-card">
-            <div className="label-xs" style={{marginBottom:10}}>{t.health}</div>
-            <div className="health-ring-wrap">
+            <div className="label" style={{marginBottom:10}}>{t.health}</div>
+            <div className="ring-wrap">
               <svg viewBox="0 0 100 100">
-                <circle cx="50" cy="50" r={R} fill="none"
-                  stroke="rgba(255,255,255,0.04)" strokeWidth="7"
-                  strokeDasharray={`${C2*0.75} ${C2}`}
-                  strokeDashoffset={C2*0.125} strokeLinecap="round"/>
-                <circle cx="50" cy="50" r={R} fill="none"
-                  stroke={health.color} strokeWidth="7"
-                  strokeDasharray={`${arc} ${C2}`}
-                  strokeDashoffset={C2*0.125} strokeLinecap="round"
-                  style={{ filter:`drop-shadow(0 0 4px ${health.color}80)`, transition:"stroke-dasharray 0.8s cubic-bezier(0.4,0,0.2,1), stroke 0.4s" }}/>
+                <circle cx="50" cy="50" r={R} fill="none" stroke={`${health.color}20`} strokeWidth="8"
+                  strokeDasharray={`${C2*0.75} ${C2}`} strokeDashoffset={C2*0.125} strokeLinecap="round"/>
+                <circle cx="50" cy="50" r={R} fill="none" stroke={health.color} strokeWidth="8"
+                  strokeDasharray={`${arc} ${C2}`} strokeDashoffset={C2*0.125} strokeLinecap="round"
+                  style={{transition:"stroke-dasharray 0.7s ease,stroke 0.3s"}}/>
               </svg>
-              <div className="health-overlay">
-                <div className="health-num" style={{color:health.color}}>{score}</div>
-                <div className="health-denom label-xs">/ 100</div>
+              <div className="ring-overlay">
+                <div className="ring-num" style={{color:health.color}}>{score}</div>
+                <div className="ring-denom label">/ 100</div>
               </div>
             </div>
-            <div className="health-label" style={{color:health.color}}>{health.label}</div>
-            <div className="health-plant">{thresh.plant || "—"}</div>
+            <div className="health-status" style={{color:health.color}}>{health.label}</div>
+            <div className="health-plant">{thresh.plant||"—"}</div>
           </div>
 
-          {/* Status / RGB / Notifications */}
           <div className="card status-card">
             <div>
-              <div className="label-xs" style={{marginBottom:10}}>{t.rgbLabel}</div>
-              <div className="rgb-wrap">
-                <div className="rgb-sphere" style={{
-                  background: `radial-gradient(circle at 35% 35%, color-mix(in srgb, ${rgb.color} 70%, white), ${rgb.color})`,
-                  boxShadow: rgb.color !== "#6B5A3E"
-                    ? `0 0 20px ${rgb.color}60, 0 0 6px ${rgb.color}40, inset 0 1px 2px rgba(255,255,255,0.15)`
-                    : `var(--depth-1), inset 0 1px 2px rgba(255,255,255,0.05)`,
-                }}/>
+              <div className="label" style={{marginBottom:10}}>{t.rgbLabel}</div>
+              <div className="rgb-row">
+                <div className="rgb-dot" style={{background:rgb.color}}/>
                 <div>
-                  <div className="rgb-state" style={{color: rgb.color !== "#6B5A3E" ? rgb.color : "var(--mulch)"}}>{rgb.label}</div>
-                  <div className="label-xs" style={{marginTop:2}}>{t.rgbLabel}</div>
+                  <div className="rgb-state" style={{color:rgb.color}}>{rgb.label}</div>
+                  <div className="label" style={{marginTop:2}}>LED</div>
                 </div>
               </div>
             </div>
-            {notifSupported ? (
-              <button className={`notif-btn ${notifGranted ? "on" : ""}`}
-                onClick={async () => { const ok = await requestNotif(); setNotifGranted(ok); }}>
-                {notifGranted ? `🔔 ${t.alertOn}` : `🔕 ${t.alertOff}`}
+            {notifSupported?(
+              <button className={`notif-btn ${notifGranted?"on":""}`}
+                onClick={async()=>{const ok=await requestNotif();setNotifGranted(ok);}}>
+                {notifGranted?`🔔 ${t.alertOn}`:`🔕 ${t.alertOff}`}
               </button>
-            ) : <div className="ios-hint">{t.alertIOS}</div>}
+            ):<div className="ios-hint">{t.alertIOS}</div>}
           </div>
         </div>
 
         {/* Indicators */}
         <div className="inds gap">
           {[
-            { on:fanOn,    color:"#7AAED4", icon:"🍃", name:t.fan,  stOn:t.running, stOff:t.idle },
-            { on:pumpOn,   color:"#6AB8A0", icon:"💧", name:t.pump, stOn:t.misting, stOff:t.idle },
-            { on:autoMode, color:"#C4956A", icon:"✦",  name:t.auto, stOn:t.auto,    stOff:t.manual },
-          ].map(({ on, color, icon, name, stOn, stOff }) => (
-            <div key={name} className={`card ind ${on ? "on" : ""}`} style={{"--ic": color}}>
-              <div className="ind-orb-wrap">
-                {on && <div className="ind-glow" style={{background: color}}/>}
-                <span>{icon}</span>
-              </div>
+            {on:fanOn,   color:"#2563EB",icon:"💨",name:t.fan, stOn:t.running,stOff:t.idle},
+            {on:pumpOn,  color:"#16A34A",icon:"💧",name:t.pump,stOn:t.misting,stOff:t.idle},
+            {on:autoMode,color:"#D97706",icon:"⚡",name:t.auto,stOn:t.auto,   stOff:t.manual},
+          ].map(({on,color,icon,name,stOn,stOff})=>(
+            <div key={name} className={`ind ${on?"on":""}`} style={{"--ic":color}}>
+              <span className="ind-icon">{icon}</span>
               <div className="ind-name">{name}</div>
-              <div className="ind-state">{on ? stOn : stOff}</div>
+              <div className="ind-state">{on?stOn:stOff}</div>
             </div>
           ))}
         </div>
@@ -776,26 +541,24 @@ export default function App() {
         {/* Charts */}
         <div className="charts gap">
           {[
-            { dKey:"temperature", color:"#C4956A", name:t.temp, unit:"°C", lo:thresh.temp_low, hi:thresh.temp_high },
-            { dKey:"humidity",    color:"#7AAED4", name:t.humid, unit:"%",  lo:thresh.humid_low, hi:thresh.humid_high },
-          ].map(({ dKey, color, name, unit, lo, hi }) => (
+            {dKey:"temperature",color:"#DC2626",name:t.temp,unit:"°C",lo:thresh.temp_low,hi:thresh.temp_high},
+            {dKey:"humidity",   color:"#2563EB",name:t.humid,unit:"%",lo:thresh.humid_low,hi:thresh.humid_high},
+          ].map(({dKey,color,name,unit,lo,hi})=>(
             <div className="card chart-card" key={dKey}>
               <div className="chart-hdr">
-                <span className="chart-name">{name}</span>
+                <span className="chart-title">{name}</span>
                 <span className="chart-range">{lo}–{hi} {unit}</span>
               </div>
               <ResponsiveContainer width="100%" height={100}>
                 <LineChart data={history.slice(-24)} margin={{top:2,right:2,left:-30,bottom:0}}>
-                  <XAxis dataKey="ts" tick={{fill:"#B0A080",fontSize:8}} interval="preserveStartEnd" axisLine={false} tickLine={false}/>
-                  <YAxis tick={{fill:"#B0A080",fontSize:8}} axisLine={false} tickLine={false}/>
-                  <Tooltip
-                    contentStyle={{background:"#2D1E0F",border:"1px solid #4A3520",borderRadius:8,fontSize:11,boxShadow:"0 8px 24px rgba(0,0,0,0.4)"}}
-                    labelStyle={{color:"#7A6A4E"}} itemStyle={{color}}
-                    cursor={{stroke:"#B0A080",strokeWidth:1}}/>
+                  <XAxis dataKey="ts" tick={{fill:"#CBD5E1",fontSize:8}} interval="preserveStartEnd" axisLine={false} tickLine={false}/>
+                  <YAxis tick={{fill:"#CBD5E1",fontSize:8}} axisLine={false} tickLine={false}/>
+                  <Tooltip contentStyle={{background:"#fff",border:"1px solid #E2E8F0",borderRadius:8,fontSize:11}}
+                    labelStyle={{color:"#64748B"}} itemStyle={{color}} cursor={{stroke:"#E2E8F0",strokeWidth:1}}/>
                   <ReferenceLine y={hi} stroke={color} strokeDasharray="3 3" strokeOpacity={0.3} strokeWidth={1}/>
                   <ReferenceLine y={lo} stroke={color} strokeDasharray="3 3" strokeOpacity={0.3} strokeWidth={1}/>
-                  <Line type="monotone" dataKey={dKey} stroke={color} strokeWidth={1.8}
-                    dot={false} activeDot={{r:4, fill:color, strokeWidth:0}}/>
+                  <Line type="monotone" dataKey={dKey} stroke={color} strokeWidth={2}
+                    dot={false} activeDot={{r:4,fill:color,strokeWidth:0}}/>
                 </LineChart>
               </ResponsiveContainer>
             </div>
@@ -804,34 +567,27 @@ export default function App() {
 
         {/* Controls */}
         <div className="card ctrl-card gap">
-          <div className="label-xs">{t.controls}</div>
+          <div className="label">{t.controls}</div>
           <div className="ctrl-list">
             {[
-              { on:autoMode, toggle:toggleAuto, name:t.autoMode, color:"#C4956A", disabled:false },
-              { on:fanOn,    toggle:toggleFan,  name:t.fanCtrl,  color:"#7AAED4", disabled:autoMode },
-              { on:pumpOn,   toggle:togglePump, name:t.pumpCtrl, color:"#6AB8A0", disabled:autoMode },
-            ].map(({ on, toggle, name, color, disabled }) => (
+              {on:autoMode,toggle:toggleAuto,name:t.autoMode,color:"#D97706",disabled:false},
+              {on:fanOn,   toggle:toggleFan, name:t.fanCtrl, color:"#2563EB",disabled:autoMode},
+              {on:pumpOn,  toggle:togglePump,name:t.pumpCtrl,color:"#16A34A",disabled:autoMode},
+            ].map(({on,toggle,name,color,disabled})=>(
               <div key={name}
-                className={`ctrl-row ${on && !disabled ? "ctrl-on" : ""} ${disabled ? "ctrl-dim" : ""}`}
-                style={{"--ac": color}}
-                onClick={disabled ? undefined : toggle}>
-                <div className="ctrl-left">
-                  <div className="ctrl-pip" style={{
-                    background: on && !disabled ? color : "var(--border)",
-                    boxShadow: on && !disabled ? `0 0 7px ${color}` : "none"
-                  }}/>
-                  <span className="ctrl-name">{name}</span>
-                </div>
-                <div className={`toggle ${on && !disabled ? "on" : ""}`} style={{"--ac": color}}>
-                  <div className="toggle-thumb"/>
+                className={`ctrl-row ${on&&!disabled?"active":""} ${disabled?"dim":""}`}
+                style={{"--ac":color}} onClick={disabled?undefined:toggle}>
+                <span className="ctrl-name">{name}</span>
+                <div className={`toggle ${on&&!disabled?"on":""}`} style={{"--ac":color}}>
+                  <div className="thumb"/>
                 </div>
               </div>
             ))}
           </div>
-          {autoMode && <div className="ctrl-hint">{t.autoHint}</div>}
+          {autoMode&&<div className="ctrl-hint">{t.autoHint}</div>}
         </div>
 
-        <div className="footer">{t.updated} {latest.ts || "—"}</div>
+        <div className="footer">{t.updated} {latest.ts||"—"}</div>
       </div>
     </>
   );
