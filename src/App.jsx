@@ -7,8 +7,8 @@ const T = {
   en: {
     sub:"Smart Greenhouse", live:"Live", espOff:"Sensor offline", netOff:"Offline",
     temp:"Temperature", humid:"Humidity", optimal:"In range", low:"Below range", high:"Above range",
-    fan:"Fan", pump:"Pump", auto:"Auto", running:"Running", misting:"Misting", idle:"Idle", manual:"Manual",
-    controls:"Controls", autoMode:"Automatic", fanCtrl:"Fan", pumpCtrl:"Pump",
+    fan:"Fan", pump:"Mist Maker", auto:"Auto", running:"Running", misting:"Misting 🌫️", idle:"Idle", manual:"Manual",
+    controls:"Controls", autoMode:"Automatic", fanCtrl:"Fan", pumpCtrl:"Mist Maker",
     autoHint:"Disable Auto to override controls",
     aiTitle:"Plant AI", aiBy:"Groq · LLaMA-3.3-70B",
     aiPlaceholder:"Enter plant name — tomato, orchid, basil…",
@@ -23,8 +23,8 @@ const T = {
   ms: {
     sub:"Rumah Hijau Pintar", live:"Langsung", espOff:"Penderia luar talian", netOff:"Luar Talian",
     temp:"Suhu", humid:"Kelembapan", optimal:"Dalam julat", low:"Terlalu rendah", high:"Terlalu tinggi",
-    fan:"Kipas", pump:"Pam", auto:"Auto", running:"Berjalan", misting:"Menyembur", idle:"Rehat", manual:"Manual",
-    controls:"Kawalan", autoMode:"Automatik", fanCtrl:"Kipas", pumpCtrl:"Pam",
+    fan:"Kipas", pump:"Penjana Kabus", auto:"Auto", running:"Berjalan", misting:"Menyembur 🌫️", idle:"Rehat", manual:"Manual",
+    controls:"Kawalan", autoMode:"Automatik", fanCtrl:"Kipas", pumpCtrl:"Penjana Kabus",
     autoHint:"Nyahaktifkan Auto untuk kawal sendiri",
     aiTitle:"AI Pokok", aiBy:"Groq · LLaMA-3.3-70B",
     aiPlaceholder:"Nama pokok — tomato, orkid, selasih…",
@@ -105,7 +105,7 @@ export default function App() {
     const p = prevRef.current;
     if (fanOn  && !p.fan)          notify("AI Planter", `${t.fan} ON`);
     if (!fanOn && p.fan)           notify("AI Planter", `${t.fan} OFF`);
-    if (pumpOn && !p.pump)         notify("AI Planter", `${t.pump} ON`);
+    if (pumpOn && !p.pump)         notify("AI Planter", `${t.pump} ON 🌫️`);
     if (!pumpOn && p.pump)         notify("AI Planter", `${t.pump} OFF`);
     if (score < 40 && p.health >= 40) notify("AI Planter", `${t.stressed} — ${score}/100`);
     prevRef.current = { fan:fanOn, pump:pumpOn, health:score };
@@ -199,6 +199,7 @@ export default function App() {
 
         html { -webkit-text-size-adjust:100%; }
         body {
+          -webkit-overflow-scrolling: touch;
           background: var(--bg);
           color: var(--text);
           font-family: 'Poppins', sans-serif;
@@ -309,7 +310,7 @@ export default function App() {
         .sensor-label { margin-bottom:10px; }
         .sensor-num {
           font-family:'Montserrat',sans-serif; font-weight:700;
-          font-size:52px; line-height:1; letter-spacing:-0.03em;
+          font-size:50px; line-height:1; letter-spacing:-0.03em;
         }
         .sensor-unit { font-size:14px; color:var(--muted); font-weight:400; margin-left:2px; }
         .sensor-status { display:flex; align-items:center; gap:5px; margin-top:8px; margin-bottom:7px; }
@@ -375,7 +376,7 @@ export default function App() {
         .ctrl-row.active .ctrl-name { color:var(--ac); font-weight:600; }
         .ctrl-row.dim .ctrl-name { color:var(--muted); }
 
-        .toggle { width:44px; height:26px; border-radius:13px; background:var(--border); position:relative; transition:background 0.2s; flex-shrink:0; }
+        .toggle { width:44px; height:26px; touch-action:manipulation; border-radius:13px; background:var(--border); position:relative; transition:background 0.2s; flex-shrink:0; }
         .toggle.on { background:var(--ac); }
         .thumb { position:absolute; top:3px; left:3px; width:20px; height:20px; border-radius:10px; background:#fff; transition:transform 0.2s; }
         .toggle.on .thumb { transform:translateX(18px); }
@@ -527,7 +528,7 @@ export default function App() {
         <div className="inds gap">
           {[
             {on:fanOn,   color:"#2563EB",icon:"💨",name:t.fan, stOn:t.running,stOff:t.idle},
-            {on:pumpOn,  color:"#16A34A",icon:"💧",name:t.pump,stOn:t.misting,stOff:t.idle},
+            {on:pumpOn,  color:"#0891B2",icon:"🌫️",name:t.pump,stOn:t.misting,stOff:t.idle},
             {on:autoMode,color:"#D97706",icon:"⚡",name:t.auto,stOn:t.auto,   stOff:t.manual},
           ].map(({on,color,icon,name,stOn,stOff})=>(
             <div key={name} className={`ind ${on?"on":""}`} style={{"--ic":color}}>
