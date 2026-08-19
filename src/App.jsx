@@ -201,7 +201,25 @@ export default function App() {
       const r = await fetch(`${API}/ai-advice?plant=${encodeURIComponent(plant)}`);
       if (!r.ok) throw new Error(await r.text());
       const d = await r.json();
-      if (d.thresholds) { setThresh({ ...d.thresholds, plant }); setChangingPlant(false); threshLockRef.current = true; setTimeout(()=>{ threshLockRef.current = false; }, 15000); notify("🌱 AI Planter", `Thresholds set for ${plant}`); }
+      if (d.thresholds) {
+        const newThresh = { ...d.thresholds, plant };
+        setThresh(newThresh);
+        setChangingPlant(false);
+        threshLockRef.current = true;
+        setTimeout(()=>{ threshLockRef.current = false; }, 30000);
+        // Sync back to backend so poll doesn't overwrite with old cached value
+        fetch(`${API}/thresholds`, {
+          method:"POST",
+          headers:{"Content-Type":"application/json"},
+          body: JSON.stringify({
+            temp_high:  newThresh.temp_high,
+            temp_low:   newThresh.temp_low,
+            humid_low:  newThresh.humid_low,
+            humid_high: newThresh.humid_high,
+          })
+        }).catch(()=>{});
+        notify("🌱 AI Planter", `Thresholds set for ${plant}`);
+      }
     } catch (e) { setAiError(t.aiFail); }
     setAiLoading(false);
   };
