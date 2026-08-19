@@ -135,6 +135,7 @@ export default function App() {
   const [backendOk, setBackendOk] = useState(false);
   const [espOk,     setEspOk]     = useState(false);
   const [notifOk,   setNotifOk]   = useState(false);
+  const [changingPlant, setChangingPlant] = useState(false);
   const [notifSup,  setNotifSup]  = useState(false);
   const pendingRef = useRef({});
   const prevRef    = useRef({ fan:false, mist:false, health:100 });
@@ -199,7 +200,7 @@ export default function App() {
       const r = await fetch(`${API}/ai-advice?plant=${encodeURIComponent(plant)}`);
       if (!r.ok) throw new Error(await r.text());
       const d = await r.json();
-      if (d.thresholds) { setThresh({ ...d.thresholds, plant }); notify("🌱 AI Planter", `Thresholds set for ${plant}`); }
+      if (d.thresholds) { setThresh({ ...d.thresholds, plant }); setChangingPlant(false); notify("🌱 AI Planter", `Thresholds set for ${plant}`); }
     } catch (e) { setAiError(t.aiFail); }
     setAiLoading(false);
   };
@@ -530,7 +531,7 @@ export default function App() {
 
         {/* ── Plant Hero ── */}
         <div className="plant-hero gap">
-          {thresh.plant && thresh.advice ? (
+          {thresh.plant && thresh.advice && !changingPlant ? (
             <>
               {/* Active plant banner */}
               <div className="plant-active-banner">
@@ -566,7 +567,7 @@ export default function App() {
               </div>
 
               {/* Change plant button */}
-              <button className="change-plant-btn" onClick={()=>setThresh({...thresh,plant:"",advice:""})}>
+              <button className="change-plant-btn" onClick={()=>{setChangingPlant(true);setPlant("");}}>
                 ↩ Change plant
               </button>
             </>
