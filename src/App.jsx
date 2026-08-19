@@ -236,15 +236,15 @@ export default function App() {
         *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 
         :root {
-          --bg:    #060A10;
-          --s1:    #0D1117;
-          --s2:    #161B22;
-          --s3:    #21262D;
-          --bd:    #30363D;
-          --bd2:   #21262D;
-          --text:  #F0F6FC;
-          --muted: #8B949E;
-          --dim:   #484F58;
+          --bg:    #F6F8FA;
+          --s1:    #FFFFFF;
+          --s2:    #F1F5F9;
+          --s3:    #E2E8F0;
+          --bd:    #D0D7DE;
+          --bd2:   #E2E8F0;
+          --text:  #1A1A2E;
+          --muted: #57606A;
+          --dim:   #8C959F;
           --green: #22C55E;
           --blue:  #60A5FA;
           --amber: #F59E0B;
@@ -274,7 +274,7 @@ export default function App() {
         .hdr{
           position:fixed;top:0;left:50%;transform:translateX(-50%);
           width:100%;max-width:430px;
-          background:rgba(6,10,16,0.88);
+          background:rgba(246,248,250,0.92);
           backdrop-filter:blur(20px);
           -webkit-backdrop-filter:blur(20px);
           padding:0 14px;
@@ -623,7 +623,7 @@ export default function App() {
             <div className="ring-wrap">
               <svg viewBox="0 0 100 100">
                 <circle cx="50" cy="50" r={R} fill="none"
-                  stroke={`${hm.color}18`} strokeWidth="8"
+                  stroke={`${hm.color}25`} strokeWidth="8"
                   strokeDasharray={`${C2*0.75} ${C2}`}
                   strokeDashoffset={C2*0.125} strokeLinecap="round"/>
                 <circle cx="50" cy="50" r={R} fill="none"
@@ -695,10 +695,10 @@ export default function App() {
               </div>
               <ResponsiveContainer width="100%" height={100}>
                 <LineChart data={history.slice(-24)} margin={{top:2,right:2,left:-30,bottom:0}}>
-                  <XAxis dataKey="ts" tick={{fill:"#484F58",fontSize:8}} interval="preserveStartEnd" axisLine={false} tickLine={false}/>
-                  <YAxis tick={{fill:"#484F58",fontSize:8}} axisLine={false} tickLine={false}/>
-                  <Tooltip contentStyle={{background:"#161B22",border:"1px solid #30363D",borderRadius:8,fontSize:11}}
-                    labelStyle={{color:"#8B949E"}} itemStyle={{color}}
+                  <XAxis dataKey="ts" tick={{fill:"#8C959F",fontSize:8}} interval="preserveStartEnd" axisLine={false} tickLine={false}/>
+                  <YAxis tick={{fill:"#8C959F",fontSize:8}} axisLine={false} tickLine={false}/>
+                  <Tooltip contentStyle={{background:"#FFFFFF",border:"1px solid #D0D7DE",borderRadius:8,fontSize:11}}
+                    labelStyle={{color:"#57606A"}} itemStyle={{color}}
                     cursor={{stroke:"#21262D",strokeWidth:1}}/>
                   <ReferenceLine y={hi} stroke={color} strokeDasharray="3 3" strokeOpacity={0.3} strokeWidth={1}/>
                   <ReferenceLine y={lo} stroke={color} strokeDasharray="3 3" strokeOpacity={0.3} strokeWidth={1}/>
