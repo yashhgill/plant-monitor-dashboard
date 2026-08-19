@@ -216,6 +216,8 @@ export default function App() {
             temp_low:   newThresh.temp_low,
             humid_low:  newThresh.humid_low,
             humid_high: newThresh.humid_high,
+            plant:      newThresh.plant,
+            advice:     newThresh.advice,
           })
         }).catch(()=>{});
         notify("🌱 AI Planter", `Thresholds set for ${plant}`);
